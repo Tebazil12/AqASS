@@ -2,14 +2,15 @@
 #include "motor_driver.h"
 #include "rudder_driver.h"
 #include "compass_driver.h"
+#include "serial_comms.h"
 
 //#define UNIT_TEST
 #define MAX_SERIAL_IN 9
 
 int desiredHeading;
 int motorSpeed; // in m/s
-int rudderAngle;
-int currentHeading;
+int rudderAngle; // in degrees
+int currentHeading; // in degrees (min 0, max 359)
 unsigned long prevTime;
 
 /* ***********************FUNCTIONS************************************** */
@@ -77,43 +78,21 @@ int wrapHeading(int angle){
 #ifdef UNIT_TEST
 /* ***************************TESTS************************************** */
 #include <avr/sleep.h> //maybe move this later if used in maincode!
-
-void test_wrapp_heading(void) {
-    Serial.print("heading-wrapping ");
-    boolean pass = true;
-    delay(100);
-    if(wrapHeading(200) == 200) Serial.print("."); else {Serial.print("F "); pass = false;}
-    if(wrapHeading(360) == 0)   Serial.print("."); else {Serial.print("F "); pass = false;}
-    if(wrapHeading(0) == 0)     Serial.print("."); else {Serial.print("F "); pass = false;}
-    if(wrapHeading(361) == 1)   Serial.print("."); else {Serial.print("F "); pass = false;}
-    if(wrapHeading(-1) == 359)  Serial.print("."); else {Serial.print("F "); pass = false;}
-    if(wrapHeading(-361) == 359)Serial.print("."); else {Serial.print("F "); pass = false;}
-    if(wrapHeading(721) == 1)   Serial.print("."); else {Serial.print("F "); pass = false;}
-    if(pass) Serial.println("PASS"); else Serial.println("FAIL");
-}
+#include "tests.h"
 
 void setup() {
-    // NOTE!!! Wait for >2 secs
-    // if board doesn't support software reset via Serial.DTR/RTS
-    delay(2000);
+    delay(2000); //as suggested when using Unity
     Serial.begin(9600);
 }
 
 void loop() {
-  Serial.println("=== STARTING TESTS ===");
-  test_wrapp_heading();
-  Serial.println("=== TESTS COMPLETE ===");
-  delay(100);
-  cli();
-  sleep_enable();
-  sleep_cpu();
-
+  runTests();
 }
 
 #else
 /* ***********************MAIN CODE************************************** */
 void setup() {
-  Serial.begin(9600);
+  initializeCompass();
   prevTime = millis();
   //set desiredHeading to be initial heading when turned on (?)
   //find central positions for the rudder, and nice start speed for the motors
