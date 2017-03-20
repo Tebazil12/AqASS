@@ -2,16 +2,24 @@
 #include "motor_driver.h"
 #include "rudder_driver.h"
 #include "compass_driver.h"
-#include "serial_comms.h"
+//#include "serial_comms.h"
 
 //#define UNIT_TEST
 #define MAX_SERIAL_IN 9
+#define KU
+#define TU
+#define KP (0.6*KU) //Ziegler–Nichols method
+#define KI (1.2*KU/TU) //Ziegler–Nichols method
+#define KD (3*KU*TU/40) //Ziegler–Nichols method
 
-int desiredHeading;
+int headingDesired;
 int motorSpeed; // in m/s
 int rudderAngle; // in degrees
-int currentHeading; // in degrees (min 0, max 359)
-unsigned long prevTime;
+int headingCurrent; // in degrees (min 0, max 359)
+int speedCurrent; //in m/s - this will only be updated when the pi tells it new info
+unsigned long timePrev;
+int headingInteg = 0;
+
 
 /* ***********************FUNCTIONS************************************** */
 
@@ -23,12 +31,14 @@ void serialEvent(){
   switch (nextLine[0]) {
   case 'c':
     // Serial.println("you said c!");
-    Serial.println(currentHeading);//probably need a better procedure than this
+    Serial.println(headingCurrent);//probably need a better procedure than this
     //is that really the best thing? instead of calling getCompass?
     break;
   case 'h':
     int newHeading;//find the number
-    desiredHeading = newHeading;
+    headingDesired = newHeading;
+
+    //add case for setting compass ofset?
 
   }
   Serial.print("Current Command:");
@@ -42,7 +52,7 @@ void serialEvent(){
  *
  * @param thisLine where read in command will be stored
  */
-void readSerialLine(char* thisLine){
+void readSerialLine(char* thisLine){//builds on functions in abersailbot/dewi-arduino
   int available = Serial.available();
   int index;
   for(index = 0; index < available; index++){
@@ -93,23 +103,32 @@ void loop() {
 /* ***********************MAIN CODE************************************** */
 void setup() {
   initializeCompass();
-  prevTime = millis();
-  //set desiredHeading to be initial heading when turned on (?)
+  setupRudder();
+  timePrev = millis();
+  //set headingDesired to be initial heading when turned on (?)
   //find central positions for the rudder, and nice start speed for the motors
 }
 
 void loop(){
   Serial.println("loop");
-  currentHeading = getCompass();
-
+  headingCurrent = getCompass(); //think about boat heading being off by a small amount due to not moving directly forward
+  Serial.print("Heading: ");
+  Serial.println(headingCurrent);
   //do some pid stuff here
-  unsigned int currentTime = millis();
-  int time_since = currentTime - prevTime;
+  unsigned long timeCurrent = millis();
+  int timePassed = timeCurrent - timePrev;
   Serial.print("time since: ");
-  Serial.println(time_since);
+  Serial.println(timePassed);
 
-//  headingError = currentHeading - //
+  headingError = headingDesired - headingCurrent; //headingError will be negative when boat needs to turn anticlockwise, and positive when it needs to turn clockwise
+  headingInteg = headingInteg + (headingError * timePassed);
+  int headingDeriv = (headingError - prevHeadErr)/timePassed;
+  rudderAngle = KP*headingError + KI*headingInteg + KD*headingDeriv + bias;//bias could be used on the fly to correct for crabbing of boat?
 
+  speedError = speedDesired - speedCurrent; //headingError will be negative when boat needs to turn anticlockwise, and positive when it needs to turn clockwise
+  speedInteg = speedInteg + (speedError * timePassed);
+  int speedDeriv = (speedError - prevSpeedErr)/timePassed;
+  motorSpeed = KP*speedError + KI*speedInteg + KD*speedDeriv + bias;
 
   setRudders(rudderAngle); //rename this to turn(angle) ? to make this based on angle of boat instead of rudders? (in this case those are ==)
   setMotors(motorSpeed); //rename this to setSpeed(speed) ? so then the driver handles motor speeds
@@ -117,7 +136,7 @@ void loop(){
   delay(1000);// obviously, reduce this
   //note, any delay inside this loop will delay reading of next values/
   // requests from pi
-
-  prevTime = currentTime;
+  prevHeadErr = headingError;
+  timePrev = timeCurrent;
 }
 #endif
