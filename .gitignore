@@ -1,0 +1,5 @@
+random-test-code/.gitignore
+random-test-code/lib/HMC5883L/
+random-test-code/lib/I2Cdev/
+random-test-code/.travis.yml
+

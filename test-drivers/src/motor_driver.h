@@ -12,8 +12,8 @@ void setupMotor(int pin){//from Aled's original boat code
  * speed.
  *
  */
-void setMotors(int speed){
-  //clever changing ratio depending on winds, drag etc?
+ void setMotors(int speed){
+//clever changing ratio depending on winds, drag etc?
 
   esc.write(speed);
 
@@ -22,4 +22,3 @@ void setMotors(int speed){
 void stopMotors(){
   esc.write(0);
 }
-
