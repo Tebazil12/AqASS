@@ -13,7 +13,7 @@
 #define PIN_RUDDERS 8
 
 //TODO change to be different for speed and heading!
-#define H_KU 1 //TODO must experiment and change
+#define H_KU 0.1 //TODO must experiment and change
 #define H_TU 1 //TODO must experiment and change
 #define H_KP (0.6*H_KU) //Ziegler–Nichols method
 #define H_KI (1.2*H_KU/H_TU) //Ziegler–Nichols method
@@ -56,17 +56,17 @@ void serialEvent(){
 
     /* Update the desiredHeading */
   case 'h':
-    if(nextLine[2] == '\n'){
+    if(nextLine[3] == ')'){//TODO change this back to not using brackets?
       /* If in the format h5 */
-      headingDesired = nextLine[1];
+      headingDesired = nextLine[2]-'0';
     }
-    else if(nextLine[3] == '\n'){
+    else if(nextLine[4] == ')'){
       /* If in format h56 */
-      headingDesired = (nextLine[1]*10) + nextLine[2];
+      headingDesired = ((nextLine[2]-'0')*10) + (nextLine[3]-'0');
     }
     else{
       /* If in format h256 */
-      headingDesired = (nextLine[1]*100) + (nextLine[2]*10) + nextLine[3];
+      headingDesired = ((nextLine[2]-'0')*100) + ((nextLine[3]-'0')*10) + (nextLine[4]-'0');
     }
     break;
 
@@ -90,7 +90,7 @@ void serialEvent(){
   //add case for setting compass ofset?
   }
   Serial.print("Current Command:"); Serial.println(nextLine);
-  Serial.println("END_AGAIN");
+  //Serial.println("END_AGAIN");
 }
 
 /**
@@ -161,12 +161,12 @@ void setup() {
 
 void loop(){
   //Serial.println("loop");
-  Serial.print("Des_head ");Serial.print(headingDesired);
+  Serial.print("d_h: ");Serial.print(headingDesired);
 
 
   /* Refresh value */
   headingCurrent = getCompass(); //think about boat heading being off by a small amount due to not moving directly forward
-  Serial.print("| Act_head: "); Serial.print(headingCurrent);
+  Serial.print("| a_h: "); Serial.print(headingCurrent);
   unsigned long timeCurrent = millis(); //put in wrap handling, just in case
   int timePassed = timeCurrent - timePrev;
   //Serial.print("time since: "); Serial.println(timePassed);
@@ -175,7 +175,8 @@ void loop(){
   if(timePassed > 0){
     /* PID for Heading */
     int headingError = headingDesired - headingCurrent; //headingError will be negative when boat needs to turn anticlockwise, and positive when it needs to turn clockwise
-    headingInteg = headingInteg + (headingError * (timePassed/1000));
+    if(headingInteg >100) headingInteg = 100;
+    else headingInteg = headingInteg + (headingError * (timePassed/1000));
     int headingDeriv = (headingError - prevHeadErr)/(timePassed/1000);
     rudderAngle = H_KP*headingError + H_KI*headingInteg + H_KD*headingDeriv + headingBias;//bias could be used on the fly to correct for crabbing of boat?
     if(rudderAngle>90) rudderAngle = 90;
@@ -192,11 +193,11 @@ void loop(){
     /* Set speed and rudders */
     setRudders(rudderAngle); //rename this to H_TUrn(angle) ? to make this based on angle of boat instead of rudders? (in this case those are ==)
     setMotors(motorSpeed); //rename this to setSpeed(speed) ? so then the driver handles motor speeds
-    Serial.print("| angle: "); Serial.print(rudderAngle);
+    Serial.print("| set_rudders: "); Serial.print(rudderAngle);
 
-    Serial.print("|| Des_speed ");Serial.print(speedDesired);
-    Serial.print("| Act_speed ");Serial.print(speedCurrent);
-    Serial.print("| speed: "); Serial.println(motorSpeed);
+    Serial.print("|| d_s: ");Serial.print(speedDesired);
+    Serial.print("| a_s: ");Serial.print(speedCurrent);
+    Serial.print("| set_speed: "); Serial.println(motorSpeed);
 
     /* Update values for next iteration */
     prevHeadErr = headingError;
