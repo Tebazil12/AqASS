@@ -120,51 +120,34 @@ int wrapHeading(int angle){
   return angle;
 }
 
-// #ifdef UNIT_TEST
-// /* ***************************TESTS************************************** */
-// #include <avr/sleep.h> //maybe move this later if used in maincode!
-// #include "tests.h"
-//
-// void setup() {
-//     delay(2000); //as suggested when using Unity
-//     Serial.begin(9600);
-// }
-//
-// void loop() {
-//   runTests();
-// }
-// #endif
 
-//#ifndef UNIT_TEST
 /* ***********************MAIN CODE************************************** */
 void setup() {
   initializeCompass();
   setupRudder(PIN_RUDDERS);
   setupMotor(PIN_MOTORS);
   timePrev = millis();
-  //set headingDesired to be initial heading when turned on (?)
-  //find central positions for the rudder, and nice start speed for the motors
 }
 
 void loop(){
   Serial.println("loop");
 
   /* Refresh value */
-  headingCurrent = getCompass(); //think about boat heading being off by a small amount due to not moving directly forward
+  headingCurrent = getCompass(); 
   Serial.print("Heading: "); Serial.println(headingCurrent);
   unsigned long timeCurrent = millis(); //put in wrap handling, just in case
   int timePassed = timeCurrent - timePrev;
-  Serial.print("time since: "); Serial.println(timePassed);
+  Serial.print("time passed: "); Serial.println(timePassed);
 
   rudderAngle = 90;
   motorSpeed = 110;
 
   /* Set speed and rudders */
-  setRudders(rudderAngle); //rename this to turn(angle) ? to make this based on angle of boat instead of rudders? (in this case those are ==)
-  setMotors(motorSpeed); //rename this to setSpeed(speed) ? so then the driver handles motor speeds
+  setRudders(rudderAngle);
+  setMotors(motorSpeed);
 
   /* Update values for next iteration */
   timePrev = timeCurrent;
-  delay(100);// obviously, reduce this //note, any delay inside this loop will delay reading of next values/
+  delay(100);
 }
 //#endif
