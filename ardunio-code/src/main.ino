@@ -77,7 +77,7 @@ void serialEvent(){
     /* End everything, shutdown */
   case 'e':
     stopMotors();
-    stopRudders();
+    centerRudders();
     //Serial.write('e');
     delay(100);
     Serial.println('e');
