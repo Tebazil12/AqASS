@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include <avr/sleep.h>
-#include "motor_driver.h"
-#include "rudder_driver.h"
-#include "compass_driver.h"
+#include "motor_driver.hpp"
+#include "rudder_driver.hpp"
+#include "compass_driver.hpp"
 //#include "serial_comms.h"
 
 //#define UNIT_TEST

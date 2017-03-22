@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include <avr/sleep.h>
-#include "motor_driver.h"
-#include "rudder_driver.h"
-#include "compass_driver.h"
+#include "../../../../ardunio-code/src/motor_driver.cpp" //TODO find way to use .hpp files!
+#include "../../../../ardunio-code/src/rudder_driver.cpp"
+#include "../../../../ardunio-code/src/compass_driver.cpp"
 //#include "serial_comms.h"
 
 //#define UNIT_TEST

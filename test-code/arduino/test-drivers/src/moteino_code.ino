@@ -1,16 +1,16 @@
 #include <Arduino.h>
 #include <avr/sleep.h>
-#include "motor_driver.h"
-#include "rudder_driver.h"
-#include "compass_driver.h"
+#include "../../../../ardunio-code/src/motor_driver.cpp" //TODO find way to use .hpp files!
+#include "../../../../ardunio-code/src/rudder_driver.cpp"
+#include "../../../../ardunio-code/src/compass_driver.cpp"
 //#include "serial_comms.h"
 
 //#define UNIT_TEST
 
 #define MAX_SERIAL_IN 9
 
-#define PIN_MOTORS 9
-#define PIN_RUDDERS 8
+#define PIN_MOTORS A2
+#define PIN_RUDDERS A3
 
 #define KU 5 //TODO must experiment and change
 #define TU 1 //TODO must experiment and change
@@ -68,7 +68,7 @@ void serialEvent(){
   /* End everything, shutdown */
   case 'e':
     stopMotors();
-    stopRudders();
+    centerRudders();
     Serial.write('e');
     delay(100); // to allow time for serial to print
     cli();
@@ -125,7 +125,7 @@ int wrapHeading(int angle){
 void setup() {
   initializeCompass();
   setupRudder(PIN_RUDDERS);
-  setupMotor(PIN_MOTORS);
+ // setupMotor(PIN_MOTORS);
   timePrev = millis();
 }
 
@@ -133,7 +133,7 @@ void loop(){
   Serial.println("loop");
 
   /* Refresh value */
-  headingCurrent = getCompass(); 
+  headingCurrent = getCompass();
   Serial.print("Heading: "); Serial.println(headingCurrent);
   unsigned long timeCurrent = millis(); //put in wrap handling, just in case
   int timePassed = timeCurrent - timePrev;
@@ -144,7 +144,7 @@ void loop(){
 
   /* Set speed and rudders */
   setRudders(rudderAngle);
-  setMotors(motorSpeed);
+  //setMotors(motorSpeed);
 
   /* Update values for next iteration */
   timePrev = timeCurrent;
