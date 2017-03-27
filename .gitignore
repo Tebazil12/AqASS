@@ -1,3 +1,5 @@
 ardunio-code/.gitignore
 ardunio-code/.travis.yml
 *.pioenvs
+*.pyc
+*__
