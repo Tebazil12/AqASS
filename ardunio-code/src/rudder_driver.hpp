@@ -14,7 +14,7 @@ int softToDeg(int angle);
 /* Covert from raw rudder values to what the main code expects (angle of rudder in degrees) */
 int rawToDeg(int value);
 
-void centerRudders();
+void stopRudders();
 
 int getHardLeft();
 

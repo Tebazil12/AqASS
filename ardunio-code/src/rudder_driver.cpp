@@ -21,17 +21,25 @@ int rawToDeg(int value){
 }
 
 /**
- * This should correspond to the angle you want the rudders set at,
+ * Corresponds to the angle you want the rudders set at,
  * with 0 setting the boat to go straight forward, -90 should turn the
- * boat fully to the left, and 90 should turn the boat fully to the right.
+ * rudders fully to the left, and 90 should turn the rudders fully to the right.
+ *
+ * With this boat, the rudders will turn to a max of ~45 degrees in either
+ * direction, not 90 degrees.
  */
 void setRudders(int angle){
   int raw = softToDeg(angle);
   rudder.write(raw);
 }
 
-void centerRudders(){
+/**
+ * Center the rudders and detach them.
+ * This should only be used at the end of the program!
+ */
+void stopRudders(){
   rudder.write(CENTER_VALUE);
+  rudder.detach();
 }
 
 int getHardLeft(){

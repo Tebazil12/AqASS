@@ -25,30 +25,52 @@
 #define S_KI (1.2*H_KU/H_TU) //Ziegler–Nichols method
 #define S_KD (3*H_KU*H_TU/40) //Ziegler–Nichols method
 
-int headingDesired;
+//TODO check if default values make sense
+
+int headingDesired = 0;
 int headingCurrent; // in degrees (min 0, max 359)
 int prevHeadErr = 0;
 int headingInteg = 0;
 int headingBias = 0;
 
-int speedBase = 80;
-int speedDesired;
+int speedBase = 0; //TODO adjust this
+int speedDesired = 0;
 int speedCurrent; //in m/s - this will only be updated when the pi tells it new info
-int speedInteg = 0;//must remember to reset when wildly different desired values
+int speedInteg = 0;//TODO must remember to reset when wildly different desired values
 int prevSpeedErr = 0;
 
-int motorSpeed; // in m/s //do these really need to be global?
+int motorSpeed = 0; // in m/s //do these really need to be global?
 int rudderAngle =0; // in degrees //do these really need to be global?
+
+int compassOffset = 0;
 
 unsigned long timePrev;
 
 /* ***********************FUNCTIONS************************************** */
 
+int getNumber(char* nextLine){
+  int number;
+  if(nextLine[3] == ')'){//TODO change this back to not using brackets?
+    /* If in the format h(5) */
+    number = nextLine[2]-'0';
+  }
+  else if(nextLine[4] == ')'){
+    /* If in format h(56) */
+    number = ((nextLine[2]-'0')*10) + (nextLine[3]-'0');
+  }
+  else{
+    /* If in format h(256) */
+    number = ((nextLine[2]-'0')*100) + ((nextLine[3]-'0')*10) + (nextLine[4]-'0');
+  }
+  return number;
+}
+
 /* when theres incoming serial, do this */
 void serialEvent(){
   char nextLine[MAX_SERIAL_IN+1];
   readSerialLine(nextLine);
-  switch (nextLine[0]) {
+  int temp;
+  switch (nextLine[0]) {//TODO implement all cases
     /* Send current heading */
   case 'c':
     Serial.print("c"); Serial.println(headingCurrent); //is that really the best thing? instead of calling getCompass?
@@ -56,28 +78,28 @@ void serialEvent(){
 
     /* Update the desiredHeading */
   case 'h':
-    if(nextLine[3] == ')'){//TODO change this back to not using brackets?
-      /* If in the format h5 */
-      headingDesired = nextLine[2]-'0';
-    }
-    else if(nextLine[4] == ')'){
-      /* If in format h56 */
-      headingDesired = ((nextLine[2]-'0')*10) + (nextLine[3]-'0');
-    }
-    else{
-      /* If in format h256 */
-      headingDesired = ((nextLine[2]-'0')*100) + ((nextLine[3]-'0')*10) + (nextLine[4]-'0');
+    temp = getNumber(nextLine);
+    if(temp >= 360 || temp < 0){
+      Serial.println("n");
+    }else{
+    headingDesired = temp;
     }
     break;
 
     /* Update desiredSpeed */
-  case 'm':
+  case 's':
+    temp =  getNumber(nextLine);
+    if(temp > getMaxSpeed() || temp < getMinSpeed()){
+      Serial.println("n");
+    }else{
+    speedDesired = temp;
+    }
     break;
 
     /* End everything, shutdown */
   case 'e':
     stopMotors();
-    centerRudders();
+    stopRudders();
     //Serial.write('e');
     delay(100);
     Serial.println('e');
@@ -87,7 +109,21 @@ void serialEvent(){
     sleep_cpu(); // check this does sleep and never wakes up
     break;
 
-  //add case for setting compass ofset?
+  /* Send current GPS location */
+  case 'l':
+    break;
+
+  /* Set compass offset */
+  case 'o':
+    temp =  getNumber(nextLine);
+    if(temp >= 360 || temp < 0){
+      Serial.println("n");
+    }else{
+    compassOffset = temp;
+    }
+
+    break;
+
   }
   Serial.print("Current Command:"); Serial.println(nextLine);
   //Serial.println("END_AGAIN");
@@ -123,6 +159,7 @@ void readSerialLine(char* thisLine){//builds on functions in abersailbot/dewi-ar
 //  Serial.println("END");
 }
 
+/* Make sure angle is greater than or equal to 0 and less than 360 */
 int wrapHeading(int angle){
   while(angle < 0){ //this seems a little slow/ineligant?
     angle += 360;
@@ -165,16 +202,23 @@ void loop(){
 
 
   /* Refresh value */
-  headingCurrent = getCompass(); //think about boat heading being off by a small amount due to not moving directly forward
+  headingCurrent = getCompass() - compassOffset;
   Serial.print("| a_h: "); Serial.print(headingCurrent);
-  unsigned long timeCurrent = millis(); //put in wrap handling, just in case
+  unsigned long timeCurrent = millis();
   int timePassed = timeCurrent - timePrev;
   //Serial.print("time since: "); Serial.println(timePassed);
 
   /* Handles wrapping of timeCurrent */
   if(timePassed > 0){
     /* PID for Heading */
-    int headingError = headingDesired - headingCurrent; //headingError will be negative when boat needs to turn anticlockwise, and positive when it needs to turn clockwise
+    int error1 = headingDesired - headingCurrent; //headingError will be negative when boat needs to turn anticlockwise, and positive when it needs to turn clockwise
+  //  int error2 = headingCurrent - headingDesired;
+    int headingError;
+    if(abs(error2) < abs(error1)){
+      headingError = error2;
+    }else{
+      headingError = error1;
+    }
     if(headingInteg >100) headingInteg = 100;
     else headingInteg = headingInteg + (headingError * (timePassed/1000));
     int headingDeriv = (headingError - prevHeadErr)/(timePassed/1000);
