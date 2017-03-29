@@ -1,3 +1,24 @@
+/*Copyright (c) 2017 Lizzie Stone
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.*/
+
+
 #include <Arduino.h>
 #include <avr/sleep.h>
 #include "motor_driver.hpp"
@@ -39,8 +60,8 @@ int speedCurrent; //in m/s - this will only be updated when the pi tells it new 
 int speedInteg = 0;//TODO must remember to reset when wildly different desired values
 int prevSpeedErr = 0;
 
-int motorSpeed = 0; // in m/s //do these really need to be global?
-int rudderAngle =0; // in degrees //do these really need to be global?
+int motorSpeed = 0; // in m/s //TODO do these really need to be global?
+int rudderAngle =0; // in degrees //TODO do these really need to be global?
 
 int compassOffset = 0;
 
@@ -226,7 +247,7 @@ void loop(){
     if(rudderAngle>90) rudderAngle = 90;
     else if(rudderAngle<-90) rudderAngle =-90;
 
-    /* PID for Speed */
+    /* PID for Speed */ //TODO is pid really necessary for speed? //TODO slow down at large angle changes to aid small turning circles?//small amount of pid on speed, but when turning, dont pid speed (cuz you cant really)
     int speedError = speedDesired - speedCurrent; //headingError will be negative when boat needs to turn anticlockwise, and positive when it needs to turn clockwise
     speedInteg = speedInteg + (speedError *(timePassed/1000));//DON'T USE TIME PASSED WHEN ITS NOT UPDATED EVERY LOOP!
     int speedDeriv = (speedError - prevSpeedErr)/(timePassed/1000);
