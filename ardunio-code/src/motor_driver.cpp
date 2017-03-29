@@ -23,18 +23,22 @@ SOFTWARE.*/
 
 #define DEGREE_ARM 90
 #define DEGREE_MAX 180
-#define DEGREE_STOP 0
-#define DEGREE_MIN -10
+#define DEGREE_STOP 90
+#define DEGREE_MIN 0
+
+#define SPEED_MAX 4
 Servo esc;
 
 /** Converts from degrees to m/s */
-int degToMPS(int degrees){
-  return degrees; //TODO implement!
+int degToMPS(int degree){
+  int speed = (degree/float(DEGREE_MAX))*SPEED_MAX; //TODO this assumes liniar corelation, check!
+  return speed; //TODO implement!
 }
 
 /** Converts from m/s to degrees */
-int mpsToDeg(int speed){
-  return speed; //TODO implement!
+int mpsToDeg(int speed){//TODO when speed is float, must remember to convert to int
+  int deg = int((speed/SPEED_MAX)* DEGREE_MAX); //TODO this assumes liniar corelation, check!
+  return deg; //TODO implement!
 }
 
 /** Initializes motors */
@@ -50,8 +54,7 @@ void setupMotor(int pin){//from Aled's original boat code
  *
  */
 void setMotors(int speed){
-  //TODO clever changing ratio depending on winds, drag etc?
-  int degrees = mpsToDeg(speed);
+  int degrees = mpsToDeg(speed); //TODO when speed is float, must remember to convert to int
   esc.write(degrees);
 }
 
@@ -59,7 +62,7 @@ void stopMotors(){
   esc.write(DEGREE_STOP);
 }
 
-int getMaxSpeed(){
+int getMaxSpeed(){ //TODO this should be a float
   return degToMPS(DEGREE_MAX);
 }
 

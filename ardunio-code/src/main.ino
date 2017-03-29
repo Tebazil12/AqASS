@@ -24,72 +24,109 @@ SOFTWARE.*/
 #include "motor_driver.hpp"
 #include "rudder_driver.hpp"
 #include "compass_driver.hpp"
-//#include "serial_comms.h"
+#include "serial_comms.hpp"
 
 //#define UNIT_TEST
 
-#define MAX_SERIAL_IN 9
+#define MAX_SERIAL_IN 9 /* The max number of chars that can be read in from the pi*/
 
-#define PIN_MOTORS 9
-#define PIN_RUDDERS 8
+#define PIN_MOTORS 9 /* Pin the motors are attached to */
+#define PIN_RUDDERS 8 /* Pin the rudders are attached to */
 
 //TODO change to be different for speed and heading!
+/* PID constants for Heading */
 #define H_KU 0.1 //TODO must experiment and change
 #define H_TU 1 //TODO must experiment and change
 #define H_KP (0.6*H_KU) //Ziegler–Nichols method
 #define H_KI (1.2*H_KU/H_TU) //Ziegler–Nichols method
 #define H_KD (3*H_KU*H_TU/40) //Ziegler–Nichols method
 
+/* PID constants for Speed */
 #define S_KU 0.01 //TODO must experiment and change
 #define S_TU 1 //TODO must experiment and change
 #define S_KP (0.6*H_KU) //Ziegler–Nichols method
 #define S_KI (1.2*H_KU/H_TU) //Ziegler–Nichols method
 #define S_KD (3*H_KU*H_TU/40) //Ziegler–Nichols method
 
-//TODO check if default values make sense
-
-int headingDesired = 0;
+//TODO check if default values make sense //TODO move initialization of values to setup()
+int headingDesired; //init in setup
 int headingCurrent; // in degrees (min 0, max 359)
 int prevHeadErr = 0;
 int headingInteg = 0;
 int headingBias = 0;
 
 int speedBase = 0; //TODO adjust this
-int speedDesired = 0;
+int speedDesired; //init in setup
 int speedCurrent; //in m/s - this will only be updated when the pi tells it new info
 int speedInteg = 0;//TODO must remember to reset when wildly different desired values
 int prevSpeedErr = 0;
 
-int motorSpeed = 0; // in m/s //TODO do these really need to be global?
-int rudderAngle =0; // in degrees //TODO do these really need to be global?
+float speedFrac = 1; /* Where 1 indicates max speed, 0 stationary */
 
+/**
+ * This is a number >= 0 and < 360. When the boat is oriented so the compass
+ * is reading 0, the offset should be what bearing the boat is actually facing
+ * along according to a calibrated compass.
+ */
 int compassOffset = 0;
 
 unsigned long timePrev;
 
 /* ***********************FUNCTIONS************************************** */
 
-int getNumber(char* nextLine){
-  int number;
-  if(nextLine[3] == ')'){//TODO change this back to not using brackets?
-    /* If in the format h(5) */
-    number = nextLine[2]-'0';
+/* Make sure angle is greater than or equal to 0 and less than 360 */
+int wrapHeading(int angle){
+  while(angle < 0){ //this seems a little slow/ineligant?
+    angle += 360;
   }
-  else if(nextLine[4] == ')'){
-    /* If in format h(56) */
-    number = ((nextLine[2]-'0')*10) + (nextLine[3]-'0');
+  angle = angle % 360;
+  return angle;
+}
+
+/**
+ * Return the angle between the two given headings (in degrees). The angle
+ * will always be less than or equal to 180 degrees, and greater than or
+ * equal to -180 degrees. Angle will be negative when the second heading is
+ * anticlockwise from the first, and positive when clockwise from the first,
+ * e.g.:
+ *
+ *  1st     2nd
+ *  \      /
+ *   \    /
+ *    \__/
+ *     \/ <- angle will be +ve
+
+ *  2nd     1st
+ *  \      /
+ *   \    /
+ *    \__/
+ *     \/ <- angle will be -ve
+ */
+int headingDiff(int heading1, int heading2){
+  /* Angle is dependant on which quadrant the two headings lie. */
+  int angle1 = (360-heading2)+heading1;
+  int angle2 = heading2-heading1;
+  int angle3 = (360-heading1)+heading2;
+
+  if(abs(angle1)<=abs(angle2) && abs(angle1)<=abs(angle3)){
+    return angle1;
+  }
+  else if (abs(angle2)<=abs(angle1) && abs(angle2) <=abs(angle3)){
+    return angle2;
+  }
+  else if (abs(angle3)<=abs(angle1) && abs(angle3)<=abs(angle2)){
+    return angle3;
   }
   else{
-    /* If in format h(256) */
-    number = ((nextLine[2]-'0')*100) + ((nextLine[3]-'0')*10) + (nextLine[4]-'0');
+    Serial.print("This should be impossible, what did you do?!");
+    return 0;
   }
-  return number;
 }
 
 /* when theres incoming serial, do this */
 void serialEvent(){
   char nextLine[MAX_SERIAL_IN+1];
-  readSerialLine(nextLine);
+  readSerialLine(nextLine, MAX_SERIAL_IN);
   int temp;
   switch (nextLine[0]) {//TODO implement all cases
     /* Send current heading */
@@ -113,7 +150,8 @@ void serialEvent(){
     if(temp > getMaxSpeed() || temp < getMinSpeed()){
       Serial.println("n");
     }else{
-    speedDesired = temp;
+    //speedDesired = temp;
+    speedFrac = temp / 100;
     }
     break;
 
@@ -150,45 +188,6 @@ void serialEvent(){
   //Serial.println("END_AGAIN");
 }
 
-/**
- * Read in next line of serial (up to a newline or carriage return) one
- * char at a time, and save them to thisLine.
- *
- * @param thisLine where read in command will be stored
- */
-void readSerialLine(char* thisLine){//builds on functions in abersailbot/dewi-arduino
-  int available = Serial.available();
-  int index;
-  for(index = 0; index < available; index++){
-    if(index >= MAX_SERIAL_IN){
-      break;
-    }
-    else{
-    //  Serial.println("in");
-      char c = Serial.read();
-    //  Serial.print("c: "); Serial.println(c);
-      if(c == '\n' || c == '\r'){
-        thisLine[index] = '\0';
-        break;
-      }
-      else{
-        thisLine[index] = c;
-      }
-    }
-  }
-  thisLine[index] = '\0';
-//  Serial.println("END");
-}
-
-/* Make sure angle is greater than or equal to 0 and less than 360 */
-int wrapHeading(int angle){
-  while(angle < 0){ //this seems a little slow/ineligant?
-    angle += 360;
-  }
-  angle = angle % 360;
-  return angle;
-}
-
 // #ifdef UNIT_TEST
 // /* ***************************TESTS************************************** */
 // #include <avr/sleep.h> //maybe move this later if used in maincode!
@@ -207,6 +206,7 @@ int wrapHeading(int angle){
 //#ifndef UNIT_TEST
 /* ***********************MAIN CODE************************************** */
 void setup() {
+  Serial.begin(9600);
   initializeCompass();
   setupRudder(PIN_RUDDERS);
   setupMotor(PIN_MOTORS);
@@ -219,48 +219,47 @@ void setup() {
 
 void loop(){
   //Serial.println("loop");
-  Serial.print("d_h: ");Serial.print(headingDesired);
-
-
-  /* Refresh value */
+  /* Refresh values */
   headingCurrent = getCompass() - compassOffset;
+  headingCurrent = wrapHeading(headingCurrent);
+  Serial.print("d_h: ");Serial.print(headingDesired);
   Serial.print("| a_h: "); Serial.print(headingCurrent);
   unsigned long timeCurrent = millis();
   int timePassed = timeCurrent - timePrev;
   //Serial.print("time since: "); Serial.println(timePassed);
 
-  /* Handles wrapping of timeCurrent */
-  if(timePassed > 0){
+  if(timePassed > 0){/* Handles wrapping of timeCurrent */
     /* PID for Heading */
-    int error1 = headingDesired - headingCurrent; //headingError will be negative when boat needs to turn anticlockwise, and positive when it needs to turn clockwise
-  //  int error2 = headingCurrent - headingDesired;
-    int headingError;
-    if(abs(error2) < abs(error1)){
-      headingError = error2;
-    }else{
-      headingError = error1;
-    }
-    if(headingInteg >100) headingInteg = 100;
-    else headingInteg = headingInteg + (headingError * (timePassed/1000));
+    int headingError = headingDiff(headingCurrent, headingDesired);
+    headingInteg = headingInteg + (headingError * (timePassed/1000));
+    headingInteg = constrain(headingInteg, -100, 100); //do not do functions in here, will break! (read docs)
     int headingDeriv = (headingError - prevHeadErr)/(timePassed/1000);
-    rudderAngle = H_KP*headingError + H_KI*headingInteg + H_KD*headingDeriv + headingBias;//bias could be used on the fly to correct for crabbing of boat?
-    if(rudderAngle>90) rudderAngle = 90;
-    else if(rudderAngle<-90) rudderAngle =-90;
+    int rudderAngle = H_KP*headingError + H_KI*headingInteg + H_KD*headingDeriv + headingBias;//bias could be used on the fly to correct for crabbing of boat?
+    rudderAngle = constrain(rudderAngle, -90, 90);
 
     /* PID for Speed */ //TODO is pid really necessary for speed? //TODO slow down at large angle changes to aid small turning circles?//small amount of pid on speed, but when turning, dont pid speed (cuz you cant really)
-    int speedError = speedDesired - speedCurrent; //headingError will be negative when boat needs to turn anticlockwise, and positive when it needs to turn clockwise
-    speedInteg = speedInteg + (speedError *(timePassed/1000));//DON'T USE TIME PASSED WHEN ITS NOT UPDATED EVERY LOOP!
-    int speedDeriv = (speedError - prevSpeedErr)/(timePassed/1000);
-    motorSpeed = S_KP*speedError + S_KI*speedInteg + S_KD*speedDeriv;// + speedBase;
-    if(motorSpeed>180) motorSpeed = 180;
-    else if(motorSpeed<-80) motorSpeed = -80;
+    int motorSpeed;
+    if(abs(headingError) < 45){
+      // int speedError = speedDesired - speedCurrent; /* Negative speedError to slow down, positive to speed up */
+      // speedInteg = speedInteg + (speedError *(timePassed/1000));//TODO DON'T USE TIME PASSED WHEN ITS NOT UPDATED EVERY LOOP!
+      // int speedDeriv = (speedError - prevSpeedErr)/(timePassed/1000);
+      // int motorSpeed = S_KP*speedError + S_KI*speedInteg + S_KD*speedDeriv;// + speedBase;
+      // motorSpeed = constrain(motorSpeed, -2, 4);
+      motorSpeed = int(speedFrac * (getMaxSpeed()-getStopSpeed())); //TODO is this over engineered?
+    }else{
+      /* Turn a tight corner at half speed to decrease turning circle */
+      motorSpeed = int(speedFrac *((getMaxSpeed() - getStopSpeed())/2)); //TODO is this over engineered?
+      //if(motorSpeed < 1) motorSpeed = 1; //TODO think about how to not make this go too slow!
+      //TODO how to handle resetting values use in PID?
+    }
+    motorSpeed = constrain(motorSpeed, getMinSpeed() , getMaxSpeed());
 
     /* Set speed and rudders */
     setRudders(rudderAngle); //rename this to H_TUrn(angle) ? to make this based on angle of boat instead of rudders? (in this case those are ==)
     setMotors(motorSpeed); //rename this to setSpeed(speed) ? so then the driver handles motor speeds
     Serial.print("| set_rudders: "); Serial.print(rudderAngle);
 
-    Serial.print("|| d_s: ");Serial.print(speedDesired);
+  //  Serial.print("|| d_s: ");Serial.print(speedDesired);
     Serial.print("| a_s: ");Serial.print(speedCurrent);
     Serial.print("| set_speed: "); Serial.println(motorSpeed);
 
@@ -268,6 +267,6 @@ void loop(){
     prevHeadErr = headingError;
   }
   timePrev = timeCurrent;
-  delay(1000);// obviously, reduce this //note, any delay inside this loop will delay reading of next values/
+  delay(1000);// TODO obviously, reduce this //note, any delay inside this loop will delay reading of next values/
 }
 //#endif

@@ -20,11 +20,11 @@ SOFTWARE.*/
 
 #include <Servo.h>
 
-#define MAX_VALUE 180 /* The max raw value that can be sent to rudders*/
-#define MIN_VALUE 0 /* The min raw value that can be sent to rudders*/
+#define MAX_VALUE 170 /* The max raw value that can be sent to rudders*/
+#define MIN_VALUE 10 /* The min raw value that can be sent to rudders*/
 #define CENTER_VALUE 90 /* The raw value that sets the rudders to go straight */
 
-Servo rudder; //see if there is a better place to put this
+Servo rudder; //TODO see if there is a better place to put this
 
 void setupRudder(int pin){
   rudder.attach(pin);
@@ -46,7 +46,17 @@ int rawToDeg(int value){
  * rudders fully to the left, and 90 should turn the rudders fully to the right.
  *
  * With this boat, the rudders will turn to a max of ~45 degrees in either
- * direction, not 90 degrees.
+ * direction, not 90 degrees (I would be impressed to find a boat that can).
+ *
+ *   _      _      _
+ *  / \    / \    / \
+ * /   \  /   \  /   \
+ * |   |  |   |  |   |
+ * |   |  |   |  |   |
+ * |___|  |___|  |___|
+ *   /      |      \
+ *  Left  Center Right
+ *  (-30)  (0)    (30)
  */
 void setRudders(int angle){
   int raw = softToDeg(angle);

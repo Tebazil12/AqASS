@@ -1,5 +1,10 @@
 #include <Arduino.h>
 #include <avr/sleep.h>
+#include <Servo.h>
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_HMC5883_U.h>
+//#include "../../../../ardunio-code/src/motor_driver.hpp"
 #include "../../../../ardunio-code/src/motor_driver.cpp" //TODO find way to use .hpp files!
 #include "../../../../ardunio-code/src/rudder_driver.cpp"
 #include "../../../../ardunio-code/src/compass_driver.cpp"
@@ -68,7 +73,7 @@ void serialEvent(){
   /* End everything, shutdown */
   case 'e':
     stopMotors();
-    centerRudders();
+    stopRudders();
     Serial.write('e');
     delay(100); // to allow time for serial to print
     cli();
@@ -139,12 +144,17 @@ void loop(){
   int timePassed = timeCurrent - timePrev;
   Serial.print("time passed: "); Serial.println(timePassed);
 
-  rudderAngle = 90;
-  motorSpeed = 110;
+  //rudderAngle = 0;
+//  motorSpeed = 110;
 
   /* Set speed and rudders */
-  setRudders(rudderAngle);
-  //setMotors(motorSpeed);
+   setRudders(90);
+   delay(1000);
+  setRudders(0);
+  delay(5000);
+  setRudders(-90);
+   delay(1000);
+//  setMotors(motorSpeed);
 
   /* Update values for next iteration */
   timePrev = timeCurrent;
