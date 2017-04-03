@@ -30,47 +30,67 @@ def wrap_degrees(angle):
 
 class Vector(object):
     def __init__(self,location,weight):
-        self.location = location
+        self.location = location # for point this will be one Location, for a line it will be two
         self.weight = weight
-
-    def get_dist_to(self, location):
-        pass
    
-    def get_vector(self):
+    def get_vector(self, loc_current):
         """
         Return the vectorized force experienced at the given location due 
         to the given object. Returns a 1D np.array in the form 
         ([xforce,yforce]).
         """
-        self.vector = None #TODO
+        dist = get_dist_to(self, loc_current)
+        bearing = bearing_to(loc_current ,closest_point(loc_current))
+        y_force = self.weight*(dist*np.degrees(np.cos(bearing)))**2
+        x_force = self.weight*(dist*np.degrees(np.cos(90-bearing)))**2
+        # these should be left as float for accuracy, later results to be 
+        # converted to int for arduino to read
+        self.vector = np.array([x_force,y_force])
         return self.vector
         
-    def get_force(self, vector):#TODO check syntax
+    def get_direction(self):#TODO check syntax
         """
-        Return the force experienced due to the given vector. Returns a 1D
-        np.array in the form ([magnitude,direction]), where direction is 
-        a heading between 0 and 359 degrees.
-        """        
-        mag = sqrt(vector[0]**2 +vector[1]**2)
-        direc = wrap_degrees(np.degrees(np.arctan2(vector[0],vector[1])))
-        result = np.array([np.clip(mag,0,180),direc])
-        return result
+        Return the angle of the force experienced due to the given vector,
+        as a heading between 0 and 359 degrees.
+        """
+        vec = get_vector()        
+        if vector[0]==0 and vector[1]==0: # as this might cause errors with atan TODO check
+            return 0 #TODO think of a better course of action to take here! maybe take previous heading?(or not)
+        rad = np.arctan2(vector[0],vector[1])
+        deg = wrap_degrees(np.degrees(rad))
+        return deg
 
 class Point(Vector):
     def get_dist_to(self, loc2):
-        return GPS_to_dist(self.location, loc2)
-    
-    def get_vector():
-        return 
-    
+        return dist_between(self.location, loc2)
+    def closest_point(self,loc2):
+        return self.location
 
-#class Obstacle(Vector):
-#    pass
+class Line(Vector):
+    def get_dist_to(self, loc2):
+        return dist_between(self.location, closest_point(loc2))
+        #return GPS_to_dist(self.location, loc2)
+    def closest_point(self, loc2):
+        """
+        Return the point on the line which is closest to loc2.
+        """
+        location[0] location[1] loc2
+        u = np.array([location[1].lat-location[0].lat,location[1].lon-location[0].lon])
+        v = np.array([loc2.lat-location[0].lat,loc2.lon-location[0].lon])
+        c1 = u.dot(v)
+        if c1<0:
+            return location[0]
+        c2 = u.dot(u)
+        if c1>c2:
+            return location[1]
+        temp = (c1/c2)*u
+        lec = Location(location[0].lat + temp[0],location[0].lat + temp[1])
+        return lec
+
         
-class Line():
-    pass
-
+   
 class Location:
+    """ Holds the gps co-ordinates of a location """
     def __init__(self,lat,lon):
         self.lat_deg = lat
         self.lon_deg = lon
@@ -79,8 +99,9 @@ class Location:
 
 
 
-def dist_to_GPS(location, dist, direction):
-    """ Return the Location at distance, dist, away from the given Location 
+def location_at(location, dist, direction):
+    """ 
+    Return the Location at distance, dist, away from the given Location 
     in the given direction.
     
     Keyword arguments:
@@ -90,9 +111,10 @@ def dist_to_GPS(location, dist, direction):
     """
     pass
 
-def GPS_to_dist(loc1, loc2):
-    """ Return the direct distance between two Locations. Distance will 
-    be scalar (e.g. always positive).
+def dist_between(loc1, loc2):
+    """ 
+    Return the direct distance between two Locations. Distance will 
+    be scalar (e.g. always positive). Use haversine formula.
     
     Keyword arguments:
     loc1 -- the first Location
@@ -104,8 +126,41 @@ def GPS_to_dist(loc1, loc2):
     m = 6371000 * c 
     return np.around(m,1)
 
+def bearing_to(loc1, loc2):
+    """
+    Return bearing, in degrees, of loc2 from loc1 (angle from line between 
+    loc1-north clockwise to loc1-loc2), e.g.:
+    
+     N      loc2
+      \      /
+       \    /
+        \__/
+         \/ <- angle will be <90
+        loc1
 
+    loc2      N
+      \      /
+       \    /
+        \  /
+        /\/\ <- angle will be >270
+        \__/
+        loc1
+    
+    Use formulas from http://www.movable-type.co.uk/scripts/latlong.html
+    """
+    a = np.sin(loc2.lon-loc1.lon) * np.cos(loc2.lat)
+    b = np.cos(loc1.lat)*np.sin(loc2.lat) - np.sin(loc1.lat)*np.cos(loc2.lat)\
+        *np.cos(loc2.lon-loc1.lon)
+    rad = np.arctan2(a,b) 
+    return np.degrees(rad)
+    
+WEIGHT_OBST = -5
+WEIGHT_WAYP = 5
+WEIGHT_TRACK = 5
+WEIGHT_BOUNDRY = -5
+    
 waypoints = None
+
 
 #TODO read file of area co-ordinates
 #TODO way of inputing start and end points
