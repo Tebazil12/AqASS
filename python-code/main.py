@@ -61,12 +61,18 @@ class Vector(object):
         return deg
 
 class Point(Vector):
+    """
+    Represents a point force which can either be attractive or repulsive.
+    """
     def get_dist_to(self, loc2):
         return dist_between(self.location, loc2)
     def closest_point(self,loc2):
         return self.location
 
 class Line(Vector):
+    """
+    Represents a line between two locations which is attractive or repulsive.
+    """
     def get_dist_to(self, loc2):
         return dist_between(self.location, closest_point(loc2))
         #return GPS_to_dist(self.location, loc2)
@@ -87,6 +93,24 @@ class Line(Vector):
         lec = Location(location[0].lat + temp[0],location[0].lat + temp[1])
         return lec
 
+class Plane(Voctor):
+    """
+    Represents a force of a set weight in a set direction at all locations.
+    """
+    
+    def __init__(self,direction,weight):
+        self.direction = direction # for point this will be one Location, for a line it will be two
+        self.weight = weight
+        self.vector = get_vector()
+   
+    def get_vector(self):
+        """
+        Return the vectorized force experienced at the given location due 
+        to the given object. Returns a 1D np.array in the form 
+        ([xforce,yforce]).
+        """
+        y_force = self.weight*(np.degrees(np.cos(self.direction)))
+        x_force = self.weight*(np.degrees(np.cos(90-self.direction)))        
         
    
 class Location:
@@ -154,10 +178,10 @@ def bearing_to(loc1, loc2):
     rad = np.arctan2(a,b) 
     return np.degrees(rad)
     
-WEIGHT_OBST = -5
-WEIGHT_WAYP = 5
-WEIGHT_TRACK = 5
-WEIGHT_BOUNDRY = -5
+WEIGHT_OBST = -1 # will use f=m/r**2
+WEIGHT_WAYP = 1 #will use f=mr**2
+WEIGHT_TRACK = 1 # will use f=mr**2
+WEIGHT_BOUNDRY = -5 # probably f=m/r**2
     
 waypoints = None
 
