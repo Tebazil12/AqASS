@@ -29,6 +29,9 @@ def wrap_degrees(angle):
     return angle
 
 class Vector(object):
+    """
+    Base class for all types of vector feild "objects". 
+    """
     def __init__(self,location,weight):
         self.location = location # for point this will be one Location, for a line it will be two
         self.weight = weight
@@ -188,6 +191,8 @@ waypoints = None
 
 #TODO read file of area co-ordinates
 #TODO way of inputing start and end points
+start_location=Location(lat_start,lon_start)
+home_location=Location(lat_fin,lon_fin)
 
 resolution = 1 #this will be the distance between adjacent paths of the boat
 
