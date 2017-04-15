@@ -76,27 +76,30 @@ class Line(Vector):
     """
     Represents a line between two locations which is attractive or repulsive.
     """
-    def get_dist_to(self, loc2):
-        return dist_between(self.location, closest_point(loc2))
-        #return GPS_to_dist(self.location, loc2)
     def closest_point(self, loc2):
         """
         Return the point on the line which is closest to loc2.
         """
-        location[0] location[1] loc2
-        u = np.array([location[1].lat-location[0].lat,location[1].lon-location[0].lon])
-        v = np.array([loc2.lat-location[0].lat,loc2.lon-location[0].lon])
+        #location[0] location[1] loc2
+        #print self.location[1].lat_deg
+        #print type(self.location)
+        u = np.array([self.location[1].lat_deg-self.location[0].lat_deg,self.location[1].lon_deg-self.location[0].lon_deg])
+        v = np.array([loc2.lat_deg-self.location[0].lat_deg,loc2.lon_deg-self.location[0].lon_deg])
         c1 = u.dot(v)
         if c1<0:
-            return location[0]
+            return self.location[0]
         c2 = u.dot(u)
         if c1>c2:
-            return location[1]
+            return self.location[1]
         temp = (c1/c2)*u
-        lec = Location(location[0].lat + temp[0],location[0].lat + temp[1])
+        lec = self.location(self.location[0].lat_deg + temp[0],self.location[0].lat_deg + temp[1])
         return lec
+        
+    def get_dist_to(self, loc2):
+        return dist_between(self.location, self.closest_point(loc2))
+        #return GPS_to_dist(self.location, loc2)
 
-class Plane(Voctor):
+class Plane(Vector):
     """
     Represents a force of a set weight in a set direction at all locations.
     """
@@ -191,8 +194,8 @@ waypoints = None
 
 #TODO read file of area co-ordinates
 #TODO way of inputing start and end points
-start_location=Location(lat_start,lon_start)
-home_location=Location(lat_fin,lon_fin)
+#start_location=Location(lat_start,lon_start)
+#home_location=Location(lat_fin,lon_fin)
 
 resolution = 1 #this will be the distance between adjacent paths of the boat
 
