@@ -44,8 +44,10 @@ class Vector(object):
         """
         dist = get_dist_to(self, loc_current)
         bearing = bearing_to(loc_current ,closest_point(loc_current))
-        y_force = self.weight*(dist*np.degrees(np.cos(bearing)))**2
-        x_force = self.weight*(dist*np.degrees(np.cos(90-bearing)))**2
+        y_force = np.around(self.weight*(dist*np.degrees(np.cos(bearing)))**2,\
+            ROUNDING)
+        x_force = np.around(self.weight*(dist*np.degrees(np.cos(90-bearing)))\
+            **2, ROUNDING)
         # these should be left as float for accuracy, later results to be 
         # converted to int for arduino to read
         self.vector = np.array([x_force,y_force])
@@ -83,8 +85,10 @@ class Line(Vector):
         #location[0] location[1] loc2
         #print self.location[1].lat_deg
         #print type(self.location)
-        u = np.array([self.location[1].lat_deg-self.location[0].lat_deg,self.location[1].lon_deg-self.location[0].lon_deg])
-        v = np.array([loc2.lat_deg-self.location[0].lat_deg,loc2.lon_deg-self.location[0].lon_deg])
+        u = np.array([self.location[1].lat_deg - self.location[0].lat_deg,\
+            self.location[1].lon_deg - self.location[0].lon_deg])
+        v = np.array([loc2.lat_deg-self.location[0].lat_deg,\
+            loc2.lon_deg-self.location[0].lon_deg])
         c1 = u.dot(v)
         if c1<0:
             return self.location[0]
@@ -92,7 +96,9 @@ class Line(Vector):
         if c1>c2:
             return self.location[1]
         temp = (c1/c2)*u
-        lec = self.location(self.location[0].lat_deg + temp[0],self.location[0].lat_deg + temp[1])
+        print temp[0]
+        lec = Location(self.location[0].lat_deg \
+            + temp[0],self.location[0].lat_deg + temp[1])
         return lec
         
     def get_dist_to(self, loc2):
@@ -107,17 +113,22 @@ class Plane(Vector):
     def __init__(self,direction,weight):
         self.direction = direction # for point this will be one Location, for a line it will be two
         self.weight = weight
-        self.vector = get_vector()
+        self.vector = self.get_vector()
    
-    def get_vector(self):
+    def get_vector(self, loc_current=None):# extra makes more interchangeable 
         """
         Return the vectorized force experienced at the given location due 
         to the given object. Returns a 1D np.array in the form 
         ([xforce,yforce]).
         """
-        y_force = self.weight*(np.degrees(np.cos(self.direction)))
-        x_force = self.weight*(np.degrees(np.cos(90-self.direction)))        
-        
+        y_force = np.around(self.weight*(np.cos(np.radians(self.direction)))\
+            ,ROUNDING)
+        x_force = np.around(self.weight*(np.cos(np.radians(90-self.direction)))\
+            ,ROUNDING) 
+        # these should be left as float for accuracy, later results to be 
+        # converted to int for arduino to read
+        self.vector = np.array([x_force,y_force])
+        return self.vector
    
 class Location:
     """ Holds the gps co-ordinates of a location """
@@ -188,6 +199,7 @@ WEIGHT_OBST = -1 # will use f=m/r**2
 WEIGHT_WAYP = 1 #will use f=mr**2
 WEIGHT_TRACK = 1 # will use f=mr**2
 WEIGHT_BOUNDRY = -5 # probably f=m/r**2
+ROUNDING = 6 # no. of decimal places vectors are rounded to
     
 waypoints = None
 
