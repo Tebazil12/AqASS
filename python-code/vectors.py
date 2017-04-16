@@ -23,17 +23,17 @@ class Vector(object):
         self.vector = np.array([x_force,y_force])
         return self.vector
         
-    def get_direction(self):#TODO check syntax
-        """
-        Return the angle of the force experienced due to the given vector,
-        as a heading between 0 and 359 degrees.
-        """
-        vec = get_vector()        
-        if vector[0]==0 and vector[1]==0: # as this might cause errors with atan TODO check
-            return 0 #TODO think of a better course of action to take here! maybe take previous heading?(or not)
-        rad = np.arctan2(vector[0],vector[1])
-        deg = wrap_degrees(np.degrees(rad))
-        return deg
+def get_direction(vector):#TODO check syntax
+    """
+    Return the angle of the force experienced due to the given vector,
+    as a heading between 0 and 359 degrees.
+    """
+    #vec = get_vector()        
+    if vector[0]==0 and vector[1]==0: # as this might cause errors with atan TODO check
+        return 0 #TODO think of a better course of action to take here! maybe take previous heading?(or not)
+    rad = np.arctan2(vector[0],vector[1])
+    deg = wrap_degrees(np.degrees(rad))
+    return deg
 
 class Point(Vector):
     """
