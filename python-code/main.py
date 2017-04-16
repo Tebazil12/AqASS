@@ -42,8 +42,8 @@ class Vector(object):
         to the given object. Returns a 1D np.array in the form 
         ([xforce,yforce]).
         """
-        dist = get_dist_to(self, loc_current)
-        bearing = bearing_to(loc_current ,closest_point(loc_current))
+        dist = self.get_dist_to(loc_current)
+        bearing = bearing_to(loc_current ,self.closest_point(loc_current))
         y_force = np.around(self.weight*(dist*np.degrees(np.cos(bearing)))**2,\
             ROUNDING)
         x_force = np.around(self.weight*(dist*np.degrees(np.cos(90-bearing)))\
@@ -69,8 +69,12 @@ class Point(Vector):
     """
     Represents a point force which can either be attractive or repulsive.
     """
+    def __str__(self):
+        return "Point[%s,%s]"%(self.location, self.weight)
+    
     def get_dist_to(self, loc2):
         return dist_between(self.location, loc2)
+        
     def closest_point(self,loc2):
         return self.location
 
@@ -137,6 +141,9 @@ class Location:
         self.lon_deg = lon
         self.lat_rad = np.radians(lat)
         self.lon_rad = np.radians(lon)
+        
+    def __str__(self):
+        return "[%s,%s]"%(self.lat_deg, self.lon_deg)
 
 
 
@@ -189,9 +196,9 @@ def bearing_to(loc1, loc2):
     
     Use formulas from http://www.movable-type.co.uk/scripts/latlong.html
     """
-    a = np.sin(loc2.lon-loc1.lon) * np.cos(loc2.lat)
-    b = np.cos(loc1.lat)*np.sin(loc2.lat) - np.sin(loc1.lat)*np.cos(loc2.lat)\
-        *np.cos(loc2.lon-loc1.lon)
+    a = np.sin(loc2.lon_rad-loc1.lon_rad) * np.cos(loc2.lat_rad)
+    b = np.cos(loc1.lat_rad)*np.sin(loc2.lat_rad) - np.sin(loc1.lat_rad)*np.cos(loc2.lat_rad)\
+        *np.cos(loc2.lon_rad-loc1.lon_rad)
     rad = np.arctan2(a,b) 
     return np.degrees(rad)
     
