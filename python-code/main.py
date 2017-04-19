@@ -27,6 +27,7 @@ import threading
 from gps import *
 from vectors import *
 from locations import *
+from behaviours import Behaviour
     
 def read_locations(file_1):
     """ Read in co-ordinates of water perimeter."""
@@ -52,21 +53,6 @@ def read_obstacles(): #TODO make this take args and return things
         print row
         obstacles.append(Point(Location(float(row[0]),float(row[1])),int(row[2])))
     obs_file.close()
-    
-def get_lanes(RESOLUTION):
-    # Find furthest apart locations on water perimeter.
-    far_loc1 = None
-    far_loc2 = None
-    max_dist = None
-    for i in perimeter_locs:
-        for j in perimeter_locs:
-            dist = dist_between(i, j)
-          #  print dist
-            if max_dist == None or dist > max_dist:
-                max_dist = dist
-                far_loc1 = i
-                far_loc2 = j
-    print far_loc1 , far_loc2 ,max_dist
 
 class GpsPoller(threading.Thread): ## Example class written by Dan Mandle http://dan.mandle.me September 2012
   def __init__(self):
@@ -95,17 +81,15 @@ ROUNDING = 7 # no. of decimal places vectors are rounded to
 RESOLUTION = 3 #this will be the distance between adjacent paths of the boat
 AT_WAYPOINT = 2 # how close to the waypoint counts as being on the waypoint
     
-waypoints = []
+
 perimeter_locs = read_locations("water.csv")
 perimeter_lines =[] # TODO CANNOT USE NORMAL LINES! IF STARTING OUTSIDE OUTLINE, WILL END UP GOING AWAY FROM START AND MAP
 obstacles =[]
+read_obstacles()#TODO make this take args and return!
 start_finish = read_locations("home.csv")
-lanes = get_lanes(RESOLUTION)
+
 
 #current_lane = None #TODO write to a file/similar to make recovery easier?
-current_waypoint = None
-
-read_obstacles()#TODO make this take args and return!
 
 try: # To stop gps thread from living if program throws an error
     gpsp = GpsPoller()
@@ -114,42 +98,20 @@ try: # To stop gps thread from living if program throws an error
         print "waiting for gps fix..."
         time.sleep(1)
 
-    #waypoints= end_of_lanes(lanes)#TODO is it worth init these on  every line instead of all the start - prevent miss-match lines to waypoints
-    #TODO find closest point on lane as first point, and put drift left/right as appropriate
+    #-----MAIN CODE-----#
+    if len(start_finish) == 2:
+        end_loc = start_finish[1]
+    start_loc = start_finish[0] # TODO handle errors if file is empty, maybe use startup location
 
-
-    #-----MAIN LOOP-----#
-    for lane in lanes: # TODO what happens when restart half way through
-        while gpsd.fix.speed > 20 or (gpsd.fix.latitude == 0 and gpsd.fix.longitude == 0):  #decide better value for gps being silly and jumping
-            pass #if after so long nothing happens, stop arduino/motors and wait/sleep?
-        drift = Plane(0,WEIGHT_PLANE) #bearing along line, will need to define left of origin and right of origin, then alternate between them
-        #prev_location = None # where the boat was located at last iteration
-        prev_speed = None
-        prev_time = None ##TODO
-        current_location = Location(gpsd.fix.latitude,gpsd.fix.longitude)
-        # While the next waypoint hasn't been reached
-        while dist_between(current_location, current_waypoint) >= AT_WAYPOINT:
-            # Checking if stuck
-            if (time_now-prev_time)% 4 == 0: #TODO time this value with corners etc
-                if gpsd.fix.speed < 1 and prev_speed < 1:
-                    # Make new obstacle infront of boat
-                    obstacles.append(Point(current_location),WEIGHT_OBST)#TODO this should be infront of boat, not on boat!
-                prev_location = current_location
-            # add vectors
-            overall = np.array([0,0])
-            for obs in obstacles:
-                overall += obs.get_vector
-            for bnd in perimeter_lines:
-                overall += bnd.get_vector
-            overall += lane.get_vector
-            overall += current_waypoint.get_vector
-            overall += drift.get_vector
-            ###
-            direction = get_direction(overall)
-            #TODO send direction to arduino
-            
-            current_location = Location(gpsd.fix.latitude,gpsd.fix.longitude) #TODO get stuff from gps
+    bh = Behaviour(perimiter_lines, perimiter_locs, obstacles)
+    bh.stationkeep(start_loc)
+    bh.areascann(RESOLUTION)
+    bh.stationkeep(end_loc, 1)
     #-------------------#
+    
+    #shuteverything down
+    #tell arduino to sleeps
+    # ask arduino to sleep so many times, if it doesnt after 5 or so, sleep pi anyway
     print "\nKilling gps Thread..." # Should go at very end
     gpsp.running = False
     gpsp.join()
@@ -164,32 +126,5 @@ print "Done.\nExiting."
   
 
 
-
-#print "locs:"
-#for i in perimeter:
-#    print i  
-#print "locs done"
-#print "home:"
-#for i in start_finish:
-#    print i  
-#print "home done"
-
-
-
-#maths to figure out positioning of channels
-
-#next_waypoint = waypoint[1]
-
-#get_current_location()
-
-#if(less than distance(converted to gps degrees?)):
-#    remove waypoint
-#else:
-    # if boat has not been moving (when its meant to be)
-    #if average of last 10 gps points is less than 5m:
- #   if speed is < 1
-  #      was last speed meant to be <1?
-   #     if not 
-    #        obstacle =  to list of objects
             
 print ('All Done')
