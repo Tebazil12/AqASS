@@ -34,18 +34,18 @@ SOFTWARE.*/
 
 //TODO change to be different for speed and heading!
 /* PID constants for Heading */
-#define H_KU 0.1 //TODO must experiment and change
-#define H_TU 1 //TODO must experiment and change
-#define H_KP (0.6*H_KU) //Ziegler–Nichols method
-#define H_KI (1.2*H_KU/H_TU) //Ziegler–Nichols method
-#define H_KD (3*H_KU*H_TU/40) //Ziegler–Nichols method
+#define KU 0.1 //TODO must experiment and change
+#define TU 1 //TODO must experiment and change
+#define KP (0.6*KU) //Ziegler–Nichols method
+#define KI (1.2*KU/TU) //Ziegler–Nichols method
+#define KD (3*KU*TU/40) //Ziegler–Nichols method
 
 //TODO check if default values make sense //TODO move initialization of values to setup()
-int headingDesired; //init in setup
-int headingCurrent; // in degrees (min 0, max 359)
+int headDesired; //init in setup
+int headCurrent; // in degrees (min 0, max 359)
 int prevHeadErr = 0;
-int headingInteg = 0;
-int headingBias = 0;
+int headInteg = 0;
+int headBias = 0;
 
 int speedCurrent; //in m/s - this will only be updated when the pi tells it new info
 int fullSpeed;
@@ -91,11 +91,11 @@ int wrapHeading(int angle){
  *    \__/
  *     \/ <- angle will be -ve
  */
-int headingDiff(int heading1, int heading2){
+int headDiff(int head1, int head2){
   /* Angle is dependant on which quadrant the two headings lie. */
-  int angle1 = (360-heading2)+heading1;
-  int angle2 = heading2-heading1;
-  int angle3 = (360-heading1)+heading2;
+  int angle1 = (360-head2)+head1;
+  int angle2 = head2-head1;
+  int angle3 = (360-head1)+head2;
 
   if(abs(angle1)<=abs(angle2) && abs(angle1)<=abs(angle3)){
     return angle1;
@@ -139,7 +139,7 @@ void serialEvent(){
   
   /* Send current heading */
   case 'c':
-    Serial.print("c("); Serial.print(headingCurrent);Serial.print(")"); //is that really the best thing? instead of calling getCompass?
+    Serial.print("c("); Serial.print(headCurrent);Serial.print(")"); //is that really the best thing? instead of calling getCompass?
     break;
 
   /* Update the desiredHeading */
@@ -148,7 +148,7 @@ void serialEvent(){
     if(temp >= 360 || temp < 0){
       Serial.println("x"); /* Send error message to Pi */
     }else{
-    headingDesired = temp;
+    headDesired = temp;
     }
     break;
 
@@ -193,12 +193,12 @@ void setup() {
   Serial.begin(9600);
   
   initCompass();
-  setupRudder(PIN_RUDDERS);
-  setupMotor(PIN_MOTORS);
+  initRudder(PIN_RUDDERS);
+  initMotor(PIN_MOTORS);
   
   timePrev = millis();
   
-  headingDesired = 90; //TODO set headingDesired to be initial heading when turned on (?)
+  headDesired = 90; //TODO set headingDesired to be initial heading when turned on (?)
     
   //TODO find central positions for the rudder, and nice start speed for the motors
   fullSpeed =  int(speedFrac * (getMaxSpeed()-getStopSpeed()));
@@ -211,31 +211,31 @@ void loop(){
   #endif
   
   /* Refresh values */
-  headingCurrent = getCompass() - compassOffset;
-  headingCurrent = wrapHeading(headingCurrent);
+  headCurrent = getCompass() - compassOffset;
+  headCurrent = wrapHeading(headCurrent);
     
-  unsigned long timeCurrent = millis();
-  int timePassed = timeCurrent - timePrev;
+  unsigned long timeNow = millis();
+  int timePassed = timeNow - timePrev;
   
   #ifdef DEBUG_PRINT
-  Serial.print("d_h: ");Serial.print(headingDesired);
-  Serial.print("| a_h: "); Serial.print(headingCurrent);
+  Serial.print("d_h: ");Serial.print(headDesired);
+  Serial.print("| a_h: "); Serial.print(headCurrent);
   Serial.print("time since: "); Serial.println(timePassed);
   #endif
 
-  if(timePassed > 0){/* Handles wrap of timeCurrent */
+  if(timePassed > 0){/* Handles wrap of timeNow */
     
     /* PID for Heading */
-    int headingError = headingDiff(headingCurrent, headingDesired);
-    headingInteg = headingInteg + (headingError * (timePassed/1000));
-    headingInteg = constrain(headingInteg, -100, 100); //do not do functions in here, will break! (read docs)
-    int headingDeriv = (headingError - prevHeadErr)/(timePassed/1000);
-    int rudderAngle = H_KP*headingError + H_KI*headingInteg + H_KD*headingDeriv + headingBias;//bias could be used on the fly to correct for crabbing of boat?
+    int headError = headDiff(headCurrent, headDesired);
+    headInteg = headInteg + (headError * (timePassed/1000));
+    headInteg = constrain(headInteg, -100, 100); //do not call functions in constrain, will break! (read docs)
+    int headDeriv = (headError - prevHeadErr)/(timePassed/1000);
+    int rudderAngle = KP*headError + KI*headInteg + KD*headDeriv + headBias;//bias could be used on the fly to correct for crabbing of boat?
     rudderAngle = constrain(rudderAngle, -90, 90);
 
     /* Speed */ 
     int motorSpeed;
-    if(abs(headingError) < 45){
+    if(abs(headError) < 45){
       motorSpeed = fullSpeed;
     }else{ /* Turn a tight corner at half speed to decrease turning circle */
       motorSpeed = halfSpeed; 
@@ -243,7 +243,7 @@ void loop(){
     motorSpeed = constrain(motorSpeed, getMinSpeed() , getMaxSpeed());
 
     /* Set speed and rudders */
-    setRudders(rudderAngle); //rename this to H_TUrn(angle) ? to make this based on angle of boat instead of rudders? (in this case those are ==)
+    setRudders(rudderAngle); //rename this to TUrn(angle) ? to make this based on angle of boat instead of rudders? (in this case those are ==)
     setMotors(motorSpeed); //rename this to setSpeed(speed) ? so then the driver handles motor speeds
    
    
@@ -253,8 +253,8 @@ void loop(){
     #endif
 
     /* Update values for next iteration */
-    prevHeadErr = headingError;
+    prevHeadErr = headError;
   }
-  timePrev = timeCurrent;
+  timePrev = timeNow;
   delay(1000);// TODO obviously, reduce this //note, any delay inside this loop will delay reading of next values/
 }

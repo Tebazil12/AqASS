@@ -24,7 +24,7 @@ SOFTWARE.*/
 
 Servo rudder; //TODO see if there is a better place to put this
 
-void setupRudder(int pin){
+void initRudder(int pin){
   rudder.attach(pin);
   rudder.write(CENTER_VALUE);
 }

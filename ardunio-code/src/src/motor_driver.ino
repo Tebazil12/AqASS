@@ -39,7 +39,7 @@ int mpsToDeg(int speed){//TODO when speed is float, must remember to convert to 
 }
 
 /** Initializes motors */
-void setupMotor(int pin){//from Aled's original boat code
+void initMotor(int pin){//from Aled's original boat code
   esc.attach(pin);
   esc.write(DEGREE_ARM);
   delay(5000); //TODO use something better than a delay?
