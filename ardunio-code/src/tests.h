@@ -15,9 +15,23 @@ void test_wrapp_heading(void) {
 void runTests(){
   Serial.println("=== STARTING TESTS ===");
   test_wrapp_heading();
+  // add more tests here
   Serial.println("=== TESTS COMPLETE ===");
   delay(100);
   cli();
   sleep_enable();
   sleep_cpu();
 }
+
+/* To run tests above, replace the setup() and void() functions in src.ino with this code */
+//
+// #include "tests.h"
+//
+// void setup() {
+//     delay(2000); // give time to wake up
+//     Serial.begin(9600);
+// }
+//
+// void loop() {
+//   runTests();
+// }

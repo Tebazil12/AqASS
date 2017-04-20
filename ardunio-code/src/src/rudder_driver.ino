@@ -26,10 +26,11 @@ Servo rudder; //TODO see if there is a better place to put this
 
 void setupRudder(int pin){
   rudder.attach(pin);
+  rudder.write(CENTER_VALUE);
 }
 
 /* Covert from what the main code expects (angle of rudder in degrees) to raw rudder values */
-int softToDeg(int angle){
+int degToRaw(int angle){
   return angle+90;
 }
 
@@ -57,7 +58,7 @@ int rawToDeg(int value){
  *  (-30)  (0)    (30)
  */
 void setRudders(int angle){
-  int raw = softToDeg(angle);
+  int raw = degToRaw(angle);
   rudder.write(raw);
 }
 

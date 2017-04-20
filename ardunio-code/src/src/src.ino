@@ -25,7 +25,7 @@ SOFTWARE.*/
 #include "Adafruit_Sensor.h"
 #include "Adafruit_HMC5883_U.h"
 
-//#define UNIT_TEST
+#define DEBUG_PRINT
 
 #define MAX_SERIALIN 9 /* The max number of chars that can be read in from the pi*/
 
@@ -40,13 +40,6 @@ SOFTWARE.*/
 #define H_KI (1.2*H_KU/H_TU) //Ziegler–Nichols method
 #define H_KD (3*H_KU*H_TU/40) //Ziegler–Nichols method
 
-/* PID constants for Speed */
-#define S_KU 0.01 //TODO must experiment and change
-#define S_TU 1 //TODO must experiment and change
-#define S_KP (0.6*H_KU) //Ziegler–Nichols method
-#define S_KI (1.2*H_KU/H_TU) //Ziegler–Nichols method
-#define S_KD (3*H_KU*H_TU/40) //Ziegler–Nichols method
-
 //TODO check if default values make sense //TODO move initialization of values to setup()
 int headingDesired; //init in setup
 int headingCurrent; // in degrees (min 0, max 359)
@@ -54,12 +47,9 @@ int prevHeadErr = 0;
 int headingInteg = 0;
 int headingBias = 0;
 
-int speedBase = 0; //TODO adjust this
-int speedDesired; //init in setup
 int speedCurrent; //in m/s - this will only be updated when the pi tells it new info
-int speedInteg = 0;//TODO must remember to reset when wildly different desired values
-int prevSpeedErr = 0;
-
+int fullSpeed;
+int halfSpeed;
 float speedFrac = 1; /* Where 1 indicates max speed, 0 stationary */
 
 /**
@@ -117,16 +107,34 @@ int headingDiff(int heading1, int heading2){
     return angle3;
   }
   else{
+    #ifdef DEBUG_PRINT
     Serial.print("This should be impossible, what did you do?!");
+    #endif
     return 0;
   }
 }
 
-/* when theres incoming serial, do this */
+/**
+ * When theres incoming serial, do this after current itteration of loop().
+ * Reads the incoming serial and interperates the message. 
+ * This Recognises four commands:
+ * 
+ * c - send the current heading
+ * e - shut down
+ * h(xxx) - replace the desired heading with the new heading xxx
+ * o(xxx) - replace the compass offset with the new offset xxx
+ *
+ * This sends the following commands:
+ *
+ * e - signals the shutdown command was registered
+ * x - the given command was not recognised
+ */
 void serialEvent(){
+  
   char nextLine[MAX_SERIALIN+1];
   readSerialLine(nextLine, MAX_SERIALIN);
   int temp;
+  
   switch (nextLine[0]) {//TODO implement all cases
   
   /* Send current heading */
@@ -158,64 +166,65 @@ void serialEvent(){
     break;
 
   /* Set compass offset */
-  case 'o':
+  case 'o': //TODO investigate if this is needed from the pi, or if hardcoding this is ok
     temp =  getNumber(nextLine);
     if(temp >= 360 || temp < 0){
-      Serial.println("n");
+      Serial.println("x");
     }else{
     compassOffset = temp;
     }
-
     break;
+    
+  /* Unrecognised Command */
+  default:
+    Serial.println("x");
+  
   }
   
+  #ifdef DEBUG_PRINT
   Serial.print("Current Command:"); Serial.println(nextLine);
   //Serial.println("END_AGAIN");
+  #endif
 }
 
-// #ifdef UNIT_TEST
-// /* ***************************TESTS************************************** */
-// #include <avr/sleep.h> //maybe move this later if used in maincode!
-// #include "tests.h"
-//
-// void setup() {
-//     delay(2000); //as suggested when using Unity
-//     Serial.begin(9600);
-// }
-//
-// void loop() {
-//   runTests();
-// }
-// #endif
-
-//#ifndef UNIT_TEST
 /* ***********************MAIN CODE************************************** */
 void setup() {
+  
   Serial.begin(9600);
-  initializeCompass();
+  
+  initCompass();
   setupRudder(PIN_RUDDERS);
   setupMotor(PIN_MOTORS);
+  
   timePrev = millis();
-  headingDesired = 90;
-  speedDesired =100;
-  //set headingDesired to be initial heading when turned on (?)
-  //find central positions for the rudder, and nice start speed for the motors
-  fullSpeed = 
-  halfSpeed =
+  
+  headingDesired = 90; //TODO set headingDesired to be initial heading when turned on (?)
+    
+  //TODO find central positions for the rudder, and nice start speed for the motors
+  fullSpeed =  int(speedFrac * (getMaxSpeed()-getStopSpeed()));
+  halfSpeed = int(speedFrac *((getMaxSpeed() - getStopSpeed())/2));
 }
 
 void loop(){
+  #ifdef DEBUG_PRINT
   //Serial.println("loop");
+  #endif
+  
   /* Refresh values */
   headingCurrent = getCompass() - compassOffset;
   headingCurrent = wrapHeading(headingCurrent);
-  Serial.print("d_h: ");Serial.print(headingDesired);
-  Serial.print("| a_h: "); Serial.print(headingCurrent);
+    
   unsigned long timeCurrent = millis();
   int timePassed = timeCurrent - timePrev;
-  //Serial.print("time since: "); Serial.println(timePassed);
+  
+  #ifdef DEBUG_PRINT
+  Serial.print("d_h: ");Serial.print(headingDesired);
+  Serial.print("| a_h: "); Serial.print(headingCurrent);
+  Serial.print("time since: "); Serial.println(timePassed);
+  #endif
 
-  if(timePassed > 0){/* Handles wrapping of timeCurrent */
+  if(timePassed > 0){/* Handles wrap of timeCurrent */
+    
     /* PID for Heading */
     int headingError = headingDiff(headingCurrent, headingDesired);
     headingInteg = headingInteg + (headingError * (timePassed/1000));
@@ -224,25 +233,24 @@ void loop(){
     int rudderAngle = H_KP*headingError + H_KI*headingInteg + H_KD*headingDeriv + headingBias;//bias could be used on the fly to correct for crabbing of boat?
     rudderAngle = constrain(rudderAngle, -90, 90);
 
-    /* PID for Speed */ //TODO is pid really necessary for speed? //TODO slow down at large angle changes to aid small turning circles?//small amount of pid on speed, but when turning, dont pid speed (cuz you cant really)
+    /* Speed */ 
     int motorSpeed;
     if(abs(headingError) < 45){
-      motorSpeed = int(speedFrac * (getMaxSpeed()-getStopSpeed()));
-    }else{
-      /* Turn a tight corner at half speed to decrease turning circle */
-      motorSpeed = int(speedFrac *((getMaxSpeed() - getStopSpeed())/2));
-      
+      motorSpeed = fullSpeed;
+    }else{ /* Turn a tight corner at half speed to decrease turning circle */
+      motorSpeed = halfSpeed; 
     }
     motorSpeed = constrain(motorSpeed, getMinSpeed() , getMaxSpeed());
 
     /* Set speed and rudders */
     setRudders(rudderAngle); //rename this to H_TUrn(angle) ? to make this based on angle of boat instead of rudders? (in this case those are ==)
     setMotors(motorSpeed); //rename this to setSpeed(speed) ? so then the driver handles motor speeds
+   
+   
+    #ifdef DEBUG_PRINT
     Serial.print("| set_rudders: "); Serial.print(rudderAngle);
-
-  //  Serial.print("|| d_s: ");Serial.print(speedDesired);
-    Serial.print("| a_s: ");Serial.print(speedCurrent);
     Serial.print("| set_speed: "); Serial.println(motorSpeed);
+    #endif
 
     /* Update values for next iteration */
     prevHeadErr = headingError;
@@ -250,4 +258,3 @@ void loop(){
   timePrev = timeCurrent;
   delay(1000);// TODO obviously, reduce this //note, any delay inside this loop will delay reading of next values/
 }
-//#endif

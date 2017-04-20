@@ -21,17 +21,21 @@ SOFTWARE.*/
 /* Assign a unique ID to this sensor at the same time */
 Adafruit_HMC5883_Unified mag = Adafruit_HMC5883_Unified(12345);
 
-void initializeCompass(){
+void initCompass(){
   //from examples in HMC5883L library
+    #ifdef DEBUG_PRINT
   // Serial.println("HMC5883 Magnetometer Test");
   // Serial.println("");
+  #endif
   //
   // /* Initialise the sensor */
   // if(!mag.begin())
   // {
   //   /* There was a problem detecting the HMC5883 ... check your connections */
+  #ifdef DEBUG_PRINT
   //   Serial.println("Ooops, no HMC5883 detected ... Check your wiring!");
   //   while(1) Serial.println("oh no!");
+  #endif
   // }
 }
 
