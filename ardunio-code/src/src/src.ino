@@ -25,7 +25,7 @@ SOFTWARE.*/
 #include "Adafruit_Sensor.h"
 #include "Adafruit_HMC5883_U.h"
 
-#define DEBUG_PRINT
+//#define DEBUG_PRINT
 
 #define MAX_SERIALIN 9 /* The max number of chars that can be read in from the pi*/
 
@@ -43,9 +43,9 @@ SOFTWARE.*/
 //TODO check if default values make sense //TODO move initialization of values to setup()
 int headDesired; //init in setup
 int headCurrent; // in degrees (min 0, max 359)
-int prevHeadErr = 0;
-int headInteg = 0;
-int headBias = 0;
+int prevHeadErr;
+int headInteg;
+int headBias;
 
 int speedCurrent; //in m/s - this will only be updated when the pi tells it new info
 int fullSpeed;
@@ -139,7 +139,7 @@ void serialEvent(){
   
   /* Send current heading */
   case 'c':
-    Serial.print("c("); Serial.print(headCurrent);Serial.print(")"); //is that really the best thing? instead of calling getCompass?
+    Serial.print("c("); Serial.print(headCurrent);Serial.println(")");
     break;
 
   /* Update the desiredHeading */
@@ -162,7 +162,7 @@ void serialEvent(){
     delay(100); // to allow time for serial to print
     cli();
     sleep_enable();
-    sleep_cpu(); // check this does sleep and never wakes up
+    sleep_cpu(); //TODO check this does sleep and never wakes up
     break;
 
   /* Set compass offset */
@@ -199,7 +199,10 @@ void setup() {
   timePrev = millis();
   
   headDesired = 90; //TODO set headingDesired to be initial heading when turned on (?)
-    
+  prevHeadErr = 0;
+  headInteg = 0;
+  headBias = 0;
+  
   //TODO find central positions for the rudder, and nice start speed for the motors
   fullSpeed =  int(speedFrac * (getMaxSpeed()-getStopSpeed()));
   halfSpeed = int(speedFrac *((getMaxSpeed() - getStopSpeed())/2));
@@ -207,7 +210,7 @@ void setup() {
 
 void loop(){
   #ifdef DEBUG_PRINT
-  //Serial.println("loop");
+  Serial.println("loop");
   #endif
   
   /* Refresh values */
@@ -228,7 +231,7 @@ void loop(){
     /* PID for Heading */
     int headError = headDiff(headCurrent, headDesired);
     headInteg = headInteg + (headError * (timePassed/1000));
-    headInteg = constrain(headInteg, -100, 100); //do not call functions in constrain, will break! (read docs)
+    headInteg = constrain(headInteg, -100, 100); //note, do not call functions in constrain, will break! (read docs)
     int headDeriv = (headError - prevHeadErr)/(timePassed/1000);
     int rudderAngle = KP*headError + KI*headInteg + KD*headDeriv + headBias;//bias could be used on the fly to correct for crabbing of boat?
     rudderAngle = constrain(rudderAngle, -90, 90);
@@ -256,5 +259,5 @@ void loop(){
     prevHeadErr = headError;
   }
   timePrev = timeNow;
-  delay(1000);// TODO obviously, reduce this //note, any delay inside this loop will delay reading of next values/
+  delay(10);// TODO obviously, reduce this //note, any delay inside this loop will delay reading of next values/
 }
