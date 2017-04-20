@@ -128,33 +128,23 @@ void serialEvent(){
   readSerialLine(nextLine, MAX_SERIALIN);
   int temp;
   switch (nextLine[0]) {//TODO implement all cases
-    /* Send current heading */
+  
+  /* Send current heading */
   case 'c':
-    Serial.print("c"); Serial.println(headingCurrent); //is that really the best thing? instead of calling getCompass?
+    Serial.print("c("); Serial.print(headingCurrent);Serial.print(")"); //is that really the best thing? instead of calling getCompass?
     break;
 
-    /* Update the desiredHeading */
+  /* Update the desiredHeading */
   case 'h':
     temp = getNumber(nextLine);
     if(temp >= 360 || temp < 0){
-      Serial.println("n");
+      Serial.println("x"); /* Send error message to Pi */
     }else{
     headingDesired = temp;
     }
     break;
 
-    /* Update desiredSpeed */
-  case 's':
-    temp =  getNumber(nextLine);
-    if(temp > getMaxSpeed() || temp < getMinSpeed()){
-      Serial.println("n");
-    }else{
-    //speedDesired = temp;
-    speedFrac = temp / 100;
-    }
-    break;
-
-    /* End everything, shutdown */
+  /* End everything, shutdown */
   case 'e':
     stopMotors();
     stopRudders();
@@ -167,10 +157,6 @@ void serialEvent(){
     sleep_cpu(); // check this does sleep and never wakes up
     break;
 
-  /* Send current GPS location */
-  case 'l':
-    break;
-
   /* Set compass offset */
   case 'o':
     temp =  getNumber(nextLine);
@@ -181,8 +167,8 @@ void serialEvent(){
     }
 
     break;
-
   }
+  
   Serial.print("Current Command:"); Serial.println(nextLine);
   //Serial.println("END_AGAIN");
 }
@@ -214,6 +200,8 @@ void setup() {
   speedDesired =100;
   //set headingDesired to be initial heading when turned on (?)
   //find central positions for the rudder, and nice start speed for the motors
+  fullSpeed = 
+  halfSpeed =
 }
 
 void loop(){
@@ -239,17 +227,11 @@ void loop(){
     /* PID for Speed */ //TODO is pid really necessary for speed? //TODO slow down at large angle changes to aid small turning circles?//small amount of pid on speed, but when turning, dont pid speed (cuz you cant really)
     int motorSpeed;
     if(abs(headingError) < 45){
-      // int speedError = speedDesired - speedCurrent; /* Negative speedError to slow down, positive to speed up */
-      // speedInteg = speedInteg + (speedError *(timePassed/1000));//TODO DON'T USE TIME PASSED WHEN ITS NOT UPDATED EVERY LOOP!
-      // int speedDeriv = (speedError - prevSpeedErr)/(timePassed/1000);
-      // int motorSpeed = S_KP*speedError + S_KI*speedInteg + S_KD*speedDeriv;// + speedBase;
-      // motorSpeed = constrain(motorSpeed, -2, 4);
-      motorSpeed = int(speedFrac * (getMaxSpeed()-getStopSpeed())); //TODO is this over engineered?
+      motorSpeed = int(speedFrac * (getMaxSpeed()-getStopSpeed()));
     }else{
       /* Turn a tight corner at half speed to decrease turning circle */
-      motorSpeed = int(speedFrac *((getMaxSpeed() - getStopSpeed())/2)); //TODO is this over engineered?
-      //if(motorSpeed < 1) motorSpeed = 1; //TODO think about how to not make this go too slow!
-      //TODO how to handle resetting values use in PID?
+      motorSpeed = int(speedFrac *((getMaxSpeed() - getStopSpeed())/2));
+      
     }
     motorSpeed = constrain(motorSpeed, getMinSpeed() , getMaxSpeed());
 
