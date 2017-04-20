@@ -18,8 +18,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
-#include <Servo.h>
-
 #define MAX_VALUE 170 /* The max raw value that can be sent to rudders*/
 #define MIN_VALUE 10 /* The min raw value that can be sent to rudders*/
 #define CENTER_VALUE 90 /* The raw value that sets the rudders to go straight */

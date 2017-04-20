@@ -18,17 +18,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
-
 #include <Arduino.h>
 #include <avr/sleep.h>
-#include "motor_driver.hpp"
-#include "rudder_driver.hpp"
-#include "compass_driver.hpp"
-#include "serial_comms.hpp"
+#include <Wire.h>
+#include <Servo.h>
+#include "Adafruit_Sensor.h"
+#include "Adafruit_HMC5883_U.h"
 
 //#define UNIT_TEST
 
-#define MAX_SERIAL_IN 9 /* The max number of chars that can be read in from the pi*/
+#define MAX_SERIALIN 9 /* The max number of chars that can be read in from the pi*/
 
 #define PIN_MOTORS 9 /* Pin the motors are attached to */
 #define PIN_RUDDERS 8 /* Pin the rudders are attached to */
@@ -125,8 +124,8 @@ int headingDiff(int heading1, int heading2){
 
 /* when theres incoming serial, do this */
 void serialEvent(){
-  char nextLine[MAX_SERIAL_IN+1];
-  readSerialLine(nextLine, MAX_SERIAL_IN);
+  char nextLine[MAX_SERIALIN+1];
+  readSerialLine(nextLine, MAX_SERIALIN);
   int temp;
   switch (nextLine[0]) {//TODO implement all cases
     /* Send current heading */
