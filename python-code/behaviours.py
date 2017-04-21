@@ -1,3 +1,8 @@
+from vectors import Line, Point, Plane
+from locations import dist_between, Location
+from gps import *
+import numpy as np
+
 class Behaviour():
     def __init__(self,perimiter_lines, perimiter_locs, obstacles):
         self.perim_lines = perimiter_lines
@@ -35,17 +40,17 @@ class Behaviour():
                 pass #if after so long nothing happens, stop arduino/motors and wait/sleep?
             drift = Plane(0,WEIGHT_PLANE) #bearing along line, will need to define left of origin and right of origin, then alternate between them
             #prev_location = None # where the boat was located at last iteration
-            prev_speed = None
+            #prev_speed = None
             prev_time = None ##TODO
             current_location = Location(gpsd.fix.latitude,gpsd.fix.longitude)
             # While the next waypoint hasn't been reached
             while dist_between(current_location, current_waypoint) >= AT_WAYPOINT:
                 # Checking if stuck
-                if (time_now-prev_time)% 4 == 0: #TODO time this value with corners etc
-                    if gpsd.fix.speed < 1 and prev_speed < 1:
-                        # Make new obstacle infront of boat
-                        obstacles.append(Point(current_location),WEIGHT_OBST)#TODO this should be infront of boat, not on boat!
-                    prev_location = current_location
+            #    if (time_now-prev_time)% 4 == 0: #TODO time this value with corners etc
+            #        if gpsd.fix.speed < 1 and prev_speed < 1:
+            #            # Make new obstacle infront of boat
+            #            obstacles.append(Point(current_location),WEIGHT_OBST)#TODO this should be infront of boat, not on boat!
+            #        prev_location = current_location
                 # add vectors
                 overall = np.array([0,0])
                 for obs in obstacles:
@@ -78,38 +83,42 @@ class Behaviour():
         #        obstacle =  to list of objects
 
 
-    def stationkeep(target_loc, station_time=5):
+    def stationkeep(self, target_loc, WEIGHT_WAYP,AT_WAYPOINT,ROUNDING, gpsp, station_time=5):
         """
         The station keeping behaviour. Will take the boat to a specified point
         and stay at the specified point for a set length of time (station_time).
         """
-        target_pt = Point(location, WEIGHT_WAYP)
-        while gpsd.fix.speed > 20 or (gpsd.fix.latitude == 0 and gpsd.fix.longitude == 0):  #decide better value for gps being silly and jumping
-                pass #if after so long nothing happens, stop arduino/motors and wait/sleep?
-            #drift = Plane(0,WEIGHT_PLANE) #bearing along line, will need to define left of origin and right of origin, then alternate between them
-            #prev_location = None # where the boat was located at last iteration
-            prev_speed = None
-            prev_time = None ##TODO
-            current_location = Location(gpsd.fix.latitude,gpsd.fix.longitude)
-            # While the next waypoint hasn't been reached
-            while dist_between(current_location, target_loc) >= AT_WAYPOINT:
-                # Checking if stuck
-                if (time_now-prev_time)% 4 == 0: #TODO time this value with corners etc
-                    if gpsd.fix.speed < 1 and prev_speed < 1:
-                        # Make new obstacle infront of boat
-                        obstacles.append(Point(current_location),WEIGHT_OBST)#TODO this should be infront of boat, not on boat!
-                    prev_speed = gpsd.fix.speed #TODO this might change between comparsion and setting - use constant for comparison first!
+        print 'what?', type(gpsp)
+        if type(gpsp) is int :
+            print 'how?!'
+            return 
+        target_pt = Point(target_loc, WEIGHT_WAYP)
+        
+    #    prev_speed = None
+        prev_time = None ##TODO
+        current_location = Location(gpsp.get_latitude(),gpsp.get_longitude())
+        # While the next waypoint hasn't been reached
+        while dist_between(current_location, target_loc) >= AT_WAYPOINT:
+            print 'current location:', current_location
+            while gpsp.get_speed() > 20 or (gpsp.get_latitude() == 0 and gpsp.get_longitude() == 0):  #decide better value for gps being silly and jumping
+                print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
+            
+            # Checking if stuck
+    #        if (time_now-prev_time)% 4 == 0: #TODO time this value with corners etc
+    #            if gpsp.get_speed() < 1 and prev_speed < 1:
+    #                # Make new obstacle infront of boat
+    #                obstacles.append(Point(current_location),WEIGHT_OBST)#TODO this should be infront of boat, not on boat!
+    #            prev_speed = gpsp.get_speed() #TODO this might change between comparsion and setting - use constant for comparison first!
                 # add vectors
-                overall = np.array([0,0])
-                for obs in obstacles:
-                    overall += obs.get_vector
-                for bnd in perimeter_lines:
-                    overall += bnd.get_vector
-                #overall += lane.get_vector
-                overall += target_pt.get_vector
-                #overall += drift.get_vector
-                ###
-                direction = get_direction(overall)
-                #TODO send direction to arduino
+            overall = np.array([0,0])
+            for obs in self.obstacles:
+                overall += obs.get_vector(current_location,ROUNDING)
+            for bnd in self.perim_lines:
+                overall += bnd.get_vector(current_location,ROUNDING)
+            overall += target_pt.get_vector(current_location,ROUNDING)
+            
+            direction = get_direction(overall)
+            #TODO send direction to arduino
+            print 'Direction:', direction
                 
-                current_location = Location(gpsd.fix.latitude,gpsd.fix.longitude) #TODO get stuff from gps
+            current_location = Location(gpsp.get_latitude(),gpsp.get_longitude()) #TODO get stuff from gps

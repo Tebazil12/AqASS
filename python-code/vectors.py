@@ -1,3 +1,6 @@
+from locations import dist_between,bearing_to,location_at,wrap_degrees
+import numpy as np
+
 class Vector(object):
     """
     Base class for all types of vector feild "objects". 
@@ -6,7 +9,7 @@ class Vector(object):
         self.location = location # for point this will be one Location, for a line it will be two
         self.weight = weight
    
-    def get_vector(self, loc_current):
+    def get_vector(self, loc_current,ROUNDING):
         """
         Return the vectorized force experienced at the given location due 
         to the given object. Returns a 1D np.array in the form 
@@ -79,6 +82,9 @@ class Line(Vector):
         return dist_between(self.location, self.closest_point(loc2))
         #return GPS_to_dist(self.location, loc2)
 
+    def __str__(self):
+        return "Line[%s,%s,%s]"%(self.location[0],self.location[1], self.weight)
+
 class Plane(Vector):
     """
     Represents a force of a set weight in a set direction at all locations.
@@ -103,3 +109,6 @@ class Plane(Vector):
         # converted to int for arduino to read
         self.vector = np.array([x_force,y_force])
         return self.vector
+
+    def __str__(self):
+        return "Plane[%s,%s]"%(self.direction, self.weight)

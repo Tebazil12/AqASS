@@ -25,9 +25,10 @@ import csv
 import time
 import threading
 from gps import *
-from vectors import *
+from vectors import Line, Point, Plane
 from locations import *
 from behaviours import Behaviour
+from gps_driver import GpsPoller
     
 def read_locations(file_1):
     """ Read in co-ordinates of water perimeter."""
@@ -54,19 +55,19 @@ def read_obstacles(): #TODO make this take args and return things
         obstacles.append(Point(Location(float(row[0]),float(row[1])),int(row[2])))
     obs_file.close()
 
-class GpsPoller(threading.Thread): ## Example class written by Dan Mandle http://dan.mandle.me September 2012
-  def __init__(self):
-    threading.Thread.__init__(self)
-    global gpsd #bring it in scope
-    gpsd = gps(mode=WATCH_ENABLE) #starting the stream of info
-    self.current_value = None
-    self.running = True #setting the thread running to true
- 
-  def run(self):
-    global gpsd
-    while gpsp.running:
-      gpsd.next() #this will continue to loop and grab EACH set of gpsd info to clear the buffer
- 
+def get_perim_lines(perimeter_locs):
+    lines = []
+    size = len(perimeter_locs)
+    print size
+    for i, thing in enumerate(perimeter_locs):
+        if i+1 == size:
+            print perimeter_locs[i], 'to', perimeter_locs[0]
+            lines.append(Line([perimeter_locs[i],perimeter_locs[0]], WEIGHT_BOUNDRY))
+        else:
+            print perimeter_locs[i], 'to', perimeter_locs[i+1]
+            lines.append(Line([perimeter_locs[i],perimeter_locs[i+1]], WEIGHT_BOUNDRY))
+    return lines
+        
     
 #-----SET UP-----#
     
@@ -83,18 +84,19 @@ AT_WAYPOINT = 2 # how close to the waypoint counts as being on the waypoint
     
 
 perimeter_locs = read_locations("water.csv")
-perimeter_lines =[] # TODO CANNOT USE NORMAL LINES! IF STARTING OUTSIDE OUTLINE, WILL END UP GOING AWAY FROM START AND MAP
+perimeter_lines = get_perim_lines(perimeter_locs) # TODO CANNOT USE NORMAL LINES! IF STARTING OUTSIDE OUTLINE, WILL END UP GOING AWAY FROM START AND MAP
 obstacles =[]
 read_obstacles()#TODO make this take args and return!
 start_finish = read_locations("home.csv")
 
 
 #current_lane = None #TODO write to a file/similar to make recovery easier?
-
+gpsp = GpsPoller()
+print type(gpsp)
 try: # To stop gps thread from living if program throws an error
-    gpsp = GpsPoller()
+    
     gpsp.start()
-    while(gpsd.fix.latitude == 0 and gpsd.fix.longitude == 0):# If working near 0,0 change this!
+    while(gpsp.get_latitude() == 0 and gpsp.get_longitude() == 0):# If working near 0,0 change this!
         print "waiting for gps fix..."
         time.sleep(1)
 
@@ -103,10 +105,11 @@ try: # To stop gps thread from living if program throws an error
         end_loc = start_finish[1]
     start_loc = start_finish[0] # TODO handle errors if file is empty, maybe use startup location
 
-    bh = Behaviour(perimiter_lines, perimiter_locs, obstacles)
-    bh.stationkeep(start_loc)
-    bh.areascann(RESOLUTION)
-    bh.stationkeep(end_loc, 1)
+    print 'Running behaviours...'
+    bh = Behaviour(perimeter_lines, perimeter_locs, obstacles)
+    bh.stationkeep(start_loc,WEIGHT_WAYP,AT_WAYPOINT,ROUNDING,gpsp)
+   # bh.areascann(RESOLUTION)
+    bh.stationkeep(end_loc,WEIGHT_WAYP,AT_WAYPOINT,ROUNDING,gpsp, 1)
     #-------------------#
     
     #shuteverything down
@@ -117,10 +120,11 @@ try: # To stop gps thread from living if program throws an error
     gpsp.join()
     
 except Exception as e:
+    print 'Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e), e
     print e.__doc__
     print e.message
     print "\nKilling Thread..."
-    gpsp.running = False
+    gpsp.running = False #TODO move this to gps-driver
     gpsp.join() # wait for the thread to finish what it's doing
 print "Done.\nExiting."
   
