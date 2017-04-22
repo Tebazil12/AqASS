@@ -150,11 +150,16 @@ class Behaviour():
             direction = int(get_direction(overall))
             #TODO send direction to arduino
             print '----Direction:', direction, '----'
+            print 'Distance to target: ',dist_between(current_location, target_loc)
             print "\r%s,%s,\"%s\",W"%(current_location.lat_deg,current_location.lon_deg,direction)
             logfile = open("logs.csv","a")
             logfile.write("\r%s,%s,\"%s\",W"%(current_location.lat_deg,current_location.lon_deg,direction))
             logfile.close()
             sleep(1)   
             current_location = Location(gpsp.get_latitude(),gpsp.get_longitude()) #TODO get stuff from gps
+            while gpsp.get_speed() > 20 or (current_location.lat_deg == 0 and current_location.lon_deg == 0 ) or current_location.lat_deg is NaN or current_location.lon_deg is NaN:  #decide better value for gps being silly and jumping
+                print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
+                sleep(1)
+                current_location = Location(gpsp.get_latitude(),gpsp.get_longitude())
         print 'Finished station keeping...'
         
