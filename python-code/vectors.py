@@ -17,29 +17,29 @@ class Vector(object):
         """
         dist = self.get_dist_to(loc_current)
         #print 'distance works'
-        print 'distance: ', dist
+        #print 'distance: ', dist
         bearing = bearing_to(loc_current ,self.closest_point(loc_current))
-        print 'bearing: ', bearing
-        print 'weight: ', self.weight
+        #print 'bearing: ', bearing
+        #print 'weight: ', self.weight
         #print 'bearing works'
         if self.weight >= 0: # This is attractive, so takes form f=mr**2
             y_force = np.around(self.weight*((dist**2)*np.cos(np.radians(bearing))),\
                 ROUNDING)
-            print 'y',y_force
+            #print 'y',y_force
            # print 'y force works'
             x_force = np.around(self.weight*((dist**2)*np.cos(np.radians(90-bearing)))\
                 , ROUNDING)
            # print 'x force works'
-            print 'x',x_force
+            #print 'x',x_force
         else: # This is repelling, so takes form f=m/r**2
             y_force = np.around(self.weight/((dist**2)*np.cos(np.radians(bearing))),\
                 ROUNDING)
-            print 'y',y_force
+            #print 'y',y_force
            # print 'y force works'
             x_force = np.around(self.weight/((dist**2)*np.cos(np.radians(90-bearing)))\
                 , ROUNDING)
            # print 'x force works
-            print 'x',x_force
+            #print 'x',x_force
         # these should be left as float for accuracy, later results to be 
         # converted to int for arduino to read
         self.vector = np.array([x_force,y_force])
@@ -101,7 +101,7 @@ class Line(Vector):
         if c1>c2:
             return self.location[1]
         temp = (c1/c2)*u
-        print temp[0]
+        #print temp[0]
         
         lec = Location(self.location[0].lat_deg \
             + temp[0],self.location[0].lat_deg + temp[1])

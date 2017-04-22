@@ -93,27 +93,33 @@ class Behaviour():
         and stay at the specified point for a set length of time (station_time).
         """
         print 'Starting station keeping...'
-        print 'what?', type(gpsp)
+
+        logfile = open("logs.csv","a")
+        logfile.write("\rNEW_LOG")
+        logfile.close()
+        
+        #print 'what?', type(gpsp)
         if type(gpsp) is int :
-            print 'how?!'
+            #print 'how?!'
             return 
         target_pt = Point(target_loc, WEIGHT_WAYP)
         
     #    prev_speed = None
         prev_time = None ##TODO
         current_location = Location(gpsp.get_latitude(),gpsp.get_longitude())
-        print 'current location:', current_location
-        print current_location.lat_deg
-        print current_location.lat_deg is NaN
+        #print 'current location:', current_location
+       # print current_location.lat_deg
+        #print current_location.lat_deg is NaN
         
         while gpsp.get_speed() > 20 or (current_location.lat_deg == 0 and current_location.lon_deg == 0 ) or current_location.lat_deg is NaN or current_location.lon_deg is NaN:  #decide better value for gps being silly and jumping
                 print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
+                sleep(1)
                 current_location = Location(gpsp.get_latitude(),gpsp.get_longitude())
         
         print 'Distance to target: ',dist_between(current_location, target_loc)
         while dist_between(current_location, target_loc) >= AT_WAYPOINT:# While the next waypoint hasn't been reached
-            print 'current location:', current_location
-            print 'target location:',target_loc
+           # print 'current location:', current_location
+           # print 'target location:',target_loc
             
             # Checking if stuck
     #        if (time_now-prev_time)% 4 == 0: #TODO time this value with corners etc
@@ -124,26 +130,31 @@ class Behaviour():
                 # add vectors
                 
             overall = np.array([0,0])
-            print 'orig',overall
+           # print 'orig',overall
             if len(self.obstacles) >=1:
                 for obs in self.obstacles:
                    # print 'this obstacle: ',obs
                     overall += obs.get_vector(current_location,ROUNDING)
-                    print 'obs', overall
+                    #print 'obs', overall
                    # print 'that obs was ok'
             if len(self.perim_lines) >= 1:       
                 for bnd in self.perim_lines:
                    # print 'This boundry: ', bnd
                     overall += bnd.get_vector(current_location,ROUNDING)
-                    print 'bnd', overall
+                    #print 'bnd', overall
                     #print 'that boundary was ok'
                 
             overall += target_pt.get_vector(current_location,ROUNDING)
-            print overall
+            #print overall
            # print 'that all worked!'
             direction = int(get_direction(overall))
             #TODO send direction to arduino
             print '----Direction:', direction, '----'
+            print "\r%s,%s,\"%s\",W"%(current_location.lat_deg,current_location.lon_deg,direction)
+            logfile = open("logs.csv","a")
+            logfile.write("\r%s,%s,\"%s\",W"%(current_location.lat_deg,current_location.lon_deg,direction))
+            logfile.close()
             sleep(1)   
             current_location = Location(gpsp.get_latitude(),gpsp.get_longitude()) #TODO get stuff from gps
         print 'Finished station keeping...'
+        

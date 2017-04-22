@@ -105,6 +105,7 @@ try: # To stop gps thread from living if program throws an error
     print 'Running behaviours...'
     bh = Behaviour(perimeter_lines, perimeter_locs, obstacles)
     bh.stationkeep(start_loc,WEIGHT_WAYP,AT_WAYPOINT,ROUNDING,gpsp)
+    print "First station keep done!"
    # bh.areascann(RESOLUTION)
     bh.stationkeep(end_loc,WEIGHT_WAYP,AT_WAYPOINT,ROUNDING,gpsp, 1)
     #-------------------#
