@@ -22,14 +22,24 @@ class Vector(object):
         print 'bearing: ', bearing
         print 'weight: ', self.weight
         #print 'bearing works'
-        y_force = np.around(self.weight*((dist**2)*np.cos(np.radians(bearing))),\
-            ROUNDING)
-        print 'y',y_force
-       # print 'y force works'
-        x_force = np.around(self.weight*((dist**2)*np.cos(np.radians(90-bearing)))\
-            , ROUNDING)
-       # print 'x force works'
-        print 'x',x_force
+        if self.weight >= 0: # This is attractive, so takes form f=mr**2
+            y_force = np.around(self.weight*((dist**2)*np.cos(np.radians(bearing))),\
+                ROUNDING)
+            print 'y',y_force
+           # print 'y force works'
+            x_force = np.around(self.weight*((dist**2)*np.cos(np.radians(90-bearing)))\
+                , ROUNDING)
+           # print 'x force works'
+            print 'x',x_force
+        else: # This is repelling, so takes form f=m/r**2
+            y_force = np.around(self.weight/((dist**2)*np.cos(np.radians(bearing))),\
+                ROUNDING)
+            print 'y',y_force
+           # print 'y force works'
+            x_force = np.around(self.weight/((dist**2)*np.cos(np.radians(90-bearing)))\
+                , ROUNDING)
+           # print 'x force works
+            print 'x',x_force
         # these should be left as float for accuracy, later results to be 
         # converted to int for arduino to read
         self.vector = np.array([x_force,y_force])

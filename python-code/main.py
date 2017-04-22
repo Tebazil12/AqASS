@@ -74,7 +74,7 @@ def get_perim_lines(perimeter_locs):
 WEIGHT_OBST = 0#-1 # will use f=m/r**2
 WEIGHT_WAYP = 10 #will use f=mr**2
 WEIGHT_LANE = 0#1 # will use f=mr**2
-WEIGHT_BOUNDRY = 0#-5 # probably f=m/r**2
+WEIGHT_BOUNDRY = -5 # probably f=m/r**2
 WEIGHT_PLANE = 0#1
 
 ROUNDING = 7 # no. of decimal places vectors are rounded to
