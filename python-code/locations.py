@@ -71,4 +71,4 @@ def bearing_to(loc1, loc2):
     b = np.cos(loc1.lat_rad)*np.sin(loc2.lat_rad) - np.sin(loc1.lat_rad)*np.cos(loc2.lat_rad)\
         *np.cos(loc2.lon_rad-loc1.lon_rad)
     rad = np.arctan2(a,b) 
-    return np.degrees(rad)
+    return wrap_degrees(np.degrees(rad))

@@ -1,4 +1,4 @@
-from locations import dist_between,bearing_to,location_at,wrap_degrees
+from locations import dist_between,bearing_to,location_at,wrap_degrees,Location
 import numpy as np
 
 class Vector(object):
@@ -17,14 +17,19 @@ class Vector(object):
         """
         dist = self.get_dist_to(loc_current)
         #print 'distance works'
+        print 'distance: ', dist
         bearing = bearing_to(loc_current ,self.closest_point(loc_current))
+        print 'bearing: ', bearing
+        print 'weight: ', self.weight
         #print 'bearing works'
-        y_force = np.around(self.weight*(dist*np.degrees(np.cos(bearing)))**2,\
+        y_force = np.around(self.weight*((dist**2)*np.cos(np.radians(bearing))),\
             ROUNDING)
+        print 'y',y_force
        # print 'y force works'
-        x_force = np.around(self.weight*(dist*np.degrees(np.cos(90-bearing)))\
-            **2, ROUNDING)
+        x_force = np.around(self.weight*((dist**2)*np.cos(np.radians(90-bearing)))\
+            , ROUNDING)
        # print 'x force works'
+        print 'x',x_force
         # these should be left as float for accuracy, later results to be 
         # converted to int for arduino to read
         self.vector = np.array([x_force,y_force])

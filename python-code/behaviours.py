@@ -55,10 +55,12 @@ class Behaviour():
             #        prev_location = current_location
                 # add vectors
                 overall = np.array([0,0])
-                for obs in obstacles:
-                    overall += obs.get_vector
-                for bnd in perimeter_lines:
-                    overall += bnd.get_vector
+                if len(obstacles) >=1:
+                    for obs in obstacles:
+                        overall += obs.get_vector
+                if len(perimeter_lines) >= 1:
+                    for bnd in perimeter_lines:
+                        overall += bnd.get_vector
                 overall += lane.get_vector
                 overall += current_waypoint.get_vector
                 overall += drift.get_vector
@@ -120,20 +122,28 @@ class Behaviour():
     #                obstacles.append(Point(current_location),WEIGHT_OBST)#TODO this should be infront of boat, not on boat!
     #            prev_speed = gpsp.get_speed() #TODO this might change between comparsion and setting - use constant for comparison first!
                 # add vectors
+                
             overall = np.array([0,0])
-            for obs in self.obstacles:
-               # print 'this obstacle: ',obs
-                overall += obs.get_vector(current_location,ROUNDING)
-               # print 'that obs was ok'
-            for bnd in self.perim_lines:
-               # print 'This boundry: ', bnd
-                overall += bnd.get_vector(current_location,ROUNDING)
-                #print 'that boundary was ok'
+            print 'orig',overall
+            if len(self.obstacles) >=1:
+                for obs in self.obstacles:
+                   # print 'this obstacle: ',obs
+                    overall += obs.get_vector(current_location,ROUNDING)
+                    print 'obs', overall
+                   # print 'that obs was ok'
+            if len(self.perim_lines) >= 1:       
+                for bnd in self.perim_lines:
+                   # print 'This boundry: ', bnd
+                    overall += bnd.get_vector(current_location,ROUNDING)
+                    print 'bnd', overall
+                    #print 'that boundary was ok'
+                
             overall += target_pt.get_vector(current_location,ROUNDING)
+            print overall
            # print 'that all worked!'
             direction = int(get_direction(overall))
             #TODO send direction to arduino
-            print 'Direction:', direction
+            print '----Direction:', direction, '----'
             sleep(1)   
             current_location = Location(gpsp.get_latitude(),gpsp.get_longitude()) #TODO get stuff from gps
         print 'Finished station keeping...'
