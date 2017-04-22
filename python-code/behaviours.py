@@ -1,7 +1,8 @@
-from vectors import Line, Point, Plane
+from vectors import Line, Point, Plane, get_direction
 from locations import dist_between, Location
 from gps import *
 import numpy as np
+from time import sleep
 
 class Behaviour():
     def __init__(self,perimiter_lines, perimiter_locs, obstacles):
@@ -110,7 +111,7 @@ class Behaviour():
         print 'Distance to target: ',dist_between(current_location, target_loc)
         while dist_between(current_location, target_loc) >= AT_WAYPOINT:# While the next waypoint hasn't been reached
             print 'current location:', current_location
-            
+            print 'target location:',target_loc
             
             # Checking if stuck
     #        if (time_now-prev_time)% 4 == 0: #TODO time this value with corners etc
@@ -121,14 +122,18 @@ class Behaviour():
                 # add vectors
             overall = np.array([0,0])
             for obs in self.obstacles:
+               # print 'this obstacle: ',obs
                 overall += obs.get_vector(current_location,ROUNDING)
+               # print 'that obs was ok'
             for bnd in self.perim_lines:
+               # print 'This boundry: ', bnd
                 overall += bnd.get_vector(current_location,ROUNDING)
+                #print 'that boundary was ok'
             overall += target_pt.get_vector(current_location,ROUNDING)
-            
-            direction = get_direction(overall)
+           # print 'that all worked!'
+            direction = int(get_direction(overall))
             #TODO send direction to arduino
             print 'Direction:', direction
-                
+            sleep(1)   
             current_location = Location(gpsp.get_latitude(),gpsp.get_longitude()) #TODO get stuff from gps
         print 'Finished station keeping...'

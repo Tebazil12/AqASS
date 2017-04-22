@@ -16,11 +16,15 @@ class Vector(object):
         ([xforce,yforce]).
         """
         dist = self.get_dist_to(loc_current)
+        #print 'distance works'
         bearing = bearing_to(loc_current ,self.closest_point(loc_current))
+        #print 'bearing works'
         y_force = np.around(self.weight*(dist*np.degrees(np.cos(bearing)))**2,\
             ROUNDING)
+       # print 'y force works'
         x_force = np.around(self.weight*(dist*np.degrees(np.cos(90-bearing)))\
             **2, ROUNDING)
+       # print 'x force works'
         # these should be left as float for accuracy, later results to be 
         # converted to int for arduino to read
         self.vector = np.array([x_force,y_force])
@@ -59,27 +63,42 @@ class Line(Vector):
         """
         Return the point on the line which is closest to loc2.
         """
+        #print 'in closest point'
         #location[0] location[1] loc2
         #print self.location[1].lat_deg
         #print type(self.location)
+       # print self.location[1].lat_rad
+        #print 'target' , loc2 , type(loc2)
         u = np.array([self.location[1].lat_deg - self.location[0].lat_deg,\
             self.location[1].lon_deg - self.location[0].lon_deg])
+       # print 'here1'
         v = np.array([loc2.lat_deg-self.location[0].lat_deg,\
             loc2.lon_deg-self.location[0].lon_deg])
+       # print 'here2'
         c1 = u.dot(v)
+       # print 'here3'
+       # print c1
         if c1<0:
+        #    print type(self.location[0])
             return self.location[0]
+      #  print 'here4'
         c2 = u.dot(u)
         if c1>c2:
             return self.location[1]
         temp = (c1/c2)*u
         print temp[0]
+        
         lec = Location(self.location[0].lat_deg \
             + temp[0],self.location[0].lat_deg + temp[1])
+
+      #  print 'leaving closest point'
         return lec
         
     def get_dist_to(self, loc2):
-        return dist_between(self.location, self.closest_point(loc2))
+        
+        #print self.location
+       # print 'out here'
+        return dist_between(loc2, self.closest_point(loc2))
         #return GPS_to_dist(self.location, loc2)
 
     def __str__(self):
