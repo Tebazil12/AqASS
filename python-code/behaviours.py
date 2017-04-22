@@ -30,6 +30,7 @@ class Behaviour():
         The area scanning behaviour. Should take the perimiter points, perimiter
         lines and obstacles. Will then navigate within the perimiter along lanes.
         """
+        print 'Starting area scan...'
         waypoints = []
         #waypoints= end_of_lanes(lanes)#TODO is it worth init these on  every line instead of all the start - prevent miss-match lines to waypoints
         #TODO find closest point on lane as first point, and put drift left/right as appropriate
@@ -88,6 +89,7 @@ class Behaviour():
         The station keeping behaviour. Will take the boat to a specified point
         and stay at the specified point for a set length of time (station_time).
         """
+        print 'Starting station keeping...'
         print 'what?', type(gpsp)
         if type(gpsp) is int :
             print 'how?!'
@@ -97,11 +99,18 @@ class Behaviour():
     #    prev_speed = None
         prev_time = None ##TODO
         current_location = Location(gpsp.get_latitude(),gpsp.get_longitude())
-        # While the next waypoint hasn't been reached
-        while dist_between(current_location, target_loc) >= AT_WAYPOINT:
-            print 'current location:', current_location
-            while gpsp.get_speed() > 20 or (gpsp.get_latitude() == 0 and gpsp.get_longitude() == 0):  #decide better value for gps being silly and jumping
+        print 'current location:', current_location
+        print current_location.lat_deg
+        print current_location.lat_deg is NaN
+        
+        while gpsp.get_speed() > 20 or (current_location.lat_deg == 0 and current_location.lon_deg == 0 ) or current_location.lat_deg is NaN or current_location.lon_deg is NaN:  #decide better value for gps being silly and jumping
                 print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
+                current_location = Location(gpsp.get_latitude(),gpsp.get_longitude())
+        
+        print 'Distance to target: ',dist_between(current_location, target_loc)
+        while dist_between(current_location, target_loc) >= AT_WAYPOINT:# While the next waypoint hasn't been reached
+            print 'current location:', current_location
+            
             
             # Checking if stuck
     #        if (time_now-prev_time)% 4 == 0: #TODO time this value with corners etc
@@ -122,3 +131,4 @@ class Behaviour():
             print 'Direction:', direction
                 
             current_location = Location(gpsp.get_latitude(),gpsp.get_longitude()) #TODO get stuff from gps
+        print 'Finished station keeping...'

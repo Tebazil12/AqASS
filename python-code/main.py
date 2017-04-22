@@ -95,10 +95,7 @@ gpsp = GpsPoller()
 print type(gpsp)
 try: # To stop gps thread from living if program throws an error
     
-    gpsp.start()
-    while(gpsp.get_latitude() == 0 and gpsp.get_longitude() == 0):# If working near 0,0 change this!
-        print "waiting for gps fix..."
-        time.sleep(1)
+    gpsp.init()
 
     #-----MAIN CODE-----#
     if len(start_finish) == 2:
@@ -111,7 +108,8 @@ try: # To stop gps thread from living if program throws an error
    # bh.areascann(RESOLUTION)
     bh.stationkeep(end_loc,WEIGHT_WAYP,AT_WAYPOINT,ROUNDING,gpsp, 1)
     #-------------------#
-    
+
+    print 'Shutting everything down...'
     #shuteverything down
     #tell arduino to sleeps
     # ask arduino to sleep so many times, if it doesnt after 5 or so, sleep pi anyway
@@ -126,9 +124,7 @@ except Exception as e:
     print "\nKilling Thread..."
     gpsp.running = False #TODO move this to gps-driver
     gpsp.join() # wait for the thread to finish what it's doing
+
 print "Done.\nExiting."
-  
-
-
             
-print ('All Done')
+print ('Python Done')
