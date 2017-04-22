@@ -25,7 +25,7 @@ SOFTWARE.*/
 #include "Adafruit_Sensor.h"
 #include "Adafruit_HMC5883_U.h"
 
-//#define DEBUG_PRINT
+#define DEBUG_PRINT
 
 #define MAX_SERIALIN 9 /* The max number of chars that can be read in from the pi*/
 
@@ -191,7 +191,7 @@ void serialEvent(){
 void setup() {
   
   Serial.begin(9600);
-  
+  delay(5000); /* So code doesn't run when reprogramming */
   initCompass();
   initRudder(PIN_RUDDERS);
   initMotor(PIN_MOTORS);
