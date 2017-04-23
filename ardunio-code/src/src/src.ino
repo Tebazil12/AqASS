@@ -57,7 +57,7 @@ float speedFrac = 1; /* Where 1 indicates max speed, 0 stationary */
  * is reading 0, the offset should be what bearing the boat is actually facing
  * along according to a calibrated compass.
  */
-int compassOffset = 0;
+int compassOffset = 280;
 
 unsigned long timePrev;
 
@@ -191,7 +191,7 @@ void serialEvent(){
 void setup() {
   
   Serial.begin(9600);
-  delay(5000); /* So code doesn't run when reprogramming */
+  delay(1000); /* So code doesn't run when reprogramming */
   initCompass();
   initRudder(PIN_RUDDERS);
   initMotor(PIN_MOTORS);
@@ -221,20 +221,22 @@ void loop(){
   int timePassed = timeNow - timePrev;
   
   #ifdef DEBUG_PRINT
+  Serial.print("time since: "); Serial.println(timePassed);
   Serial.print("d_h: ");Serial.print(headDesired);
   Serial.print("| a_h: "); Serial.print(headCurrent);
-  Serial.print("time since: "); Serial.println(timePassed);
   #endif
 
   if(timePassed > 0){/* Handles wrap of timeNow */
     
     /* PID for Heading */
     int headError = headDiff(headCurrent, headDesired);
-    headInteg = headInteg + (headError * (timePassed/1000));
-    headInteg = constrain(headInteg, -100, 100); //note, do not call functions in constrain, will break! (read docs)
-    int headDeriv = (headError - prevHeadErr)/(timePassed/1000);
+    headInteg = headInteg + (headError * (timePassed/1000.));
+    headInteg = constrain(headInteg, -500, 500); //note, do not call functions in constrain, will break! (read docs)
+    int headDeriv = (headError - prevHeadErr)/(timePassed/1000.);
     int rudderAngle = KP*headError + KI*headInteg + KD*headDeriv + headBias;//bias could be used on the fly to correct for crabbing of boat?
-    rudderAngle = constrain(rudderAngle, -90, 90);
+    int minAng =getHardRight();
+    int maxAng =getHardLeft();
+    rudderAngle = constrain(rudderAngle, minAng, maxAng);
 
     /* Speed */ 
     int motorSpeed;
