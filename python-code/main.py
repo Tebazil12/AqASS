@@ -103,11 +103,14 @@ try: # To stop gps thread from living if program throws an error
     start_loc = start_finish[0] # TODO handle errors if file is empty, maybe use startup location
 
     print 'Running behaviours...'
-    bh = Behaviour(perimeter_lines, perimeter_locs, obstacles)
-    bh.stationkeep(start_loc,WEIGHT_WAYP,AT_WAYPOINT,ROUNDING,gpsp)
+    bh = Behaviour(perimeter_lines, perimeter_locs, obstacles,WEIGHT_WAYP,AT_WAYPOINT,ROUNDING,gpsp)
+
+    bh.go_to_waypoint(start_loc)
     print "First station keep done!"
+
    # bh.areascann(RESOLUTION)
-    bh.stationkeep(end_loc,WEIGHT_WAYP,AT_WAYPOINT,ROUNDING,gpsp, 1)
+
+    bh.go_to_waypoint(end_loc)
     #-------------------#
 
     print 'Shutting everything down...'

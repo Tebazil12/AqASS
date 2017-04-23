@@ -16,7 +16,8 @@ class GpsPoller(threading.Thread): ## orginal Example class written by Dan Mandl
 
     def init(self):
         self.start()
-        while(self.gpsd.fix.latitude == 0 and self.gpsd.fix.longitude == 0)or self.gpsd.fix.latitude is NaN or self.gpsd.fix.longitude is NaN:# If working near 0,0 change this!
+        while(self.gpsd.fix.latitude == 0 and self.gpsd.fix.longitude == 0)or\
+                self.gpsd.fix.latitude is NaN or self.gpsd.fix.longitude is NaN:# If working near 0,0 change this!
             print "waiting for gps fix..."
             time.sleep(1)        
     

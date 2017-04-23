@@ -3,12 +3,17 @@ from locations import dist_between, Location
 from gps import *
 import numpy as np
 from time import sleep
+from datetime import datetime
 
 class Behaviour():
-    def __init__(self,perimiter_lines, perimiter_locs, obstacles):
+    def __init__(self,perimiter_lines, perimiter_locs, obstacles, WEIGHT_WAYP,AT_WAYPOINT,ROUNDING, gpsp):
         self.perim_lines = perimiter_lines
         self.perim_locs =perimiter_locs
         self.obstacles = obstacles
+        self.WEIGHT_WAYP = WEIGHT_WAYP
+        self.AT_WAYPOINT =AT_WAYPOINT
+        self.ROUNDING =ROUNDING
+        self.gpsp =gpsp
         
     def get_lanes(RESOLUTION):
         # Find furthest apart locations on water perimeter.
@@ -87,37 +92,34 @@ class Behaviour():
         #        obstacle =  to list of objects
 
 
-    def stationkeep(self, target_loc, WEIGHT_WAYP,AT_WAYPOINT,ROUNDING, gpsp, station_time=5):
+    def go_to_waypoint(self, target_loc):
         """
         The station keeping behaviour. Will take the boat to a specified point
         and stay at the specified point for a set length of time (station_time).
         """
-        print 'Starting station keeping...'
+        print 'Going to waypoint',target_loc,' ...'
 
         logfile = open("logs.csv","a")
-        logfile.write("\rNEW_LOG")
+        logfile.write("\rNEW_LOG %s"%str(datetime.now()))
         logfile.close()
-        
-        #print 'what?', type(gpsp)
-        if type(gpsp) is int :
-            #print 'how?!'
-            return 
-        target_pt = Point(target_loc, WEIGHT_WAYP)
+
+        target_pt = Point(target_loc, self.WEIGHT_WAYP)
+        current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude())
+        #print 'current location:', current_location
         
     #    prev_speed = None
         prev_time = None ##TODO
-        current_location = Location(gpsp.get_latitude(),gpsp.get_longitude())
-        #print 'current location:', current_location
-       # print current_location.lat_deg
-        #print current_location.lat_deg is NaN
         
-        while gpsp.get_speed() > 20 or (current_location.lat_deg == 0 and current_location.lon_deg == 0 ) or current_location.lat_deg is NaN or current_location.lon_deg is NaN:  #decide better value for gps being silly and jumping
-                print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
-                sleep(1)
-                current_location = Location(gpsp.get_latitude(),gpsp.get_longitude())
+
+        # Check there is a gps fix
+        while (current_location.lat_deg == 0 and current_location.lon_deg == 0 )\
+              or current_location.lat_deg is NaN or current_location.lon_deg is NaN:
+            print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
+            sleep(1)
+            current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude())
         
         print 'Distance to target: ',dist_between(current_location, target_loc)
-        while dist_between(current_location, target_loc) >= AT_WAYPOINT:# While the next waypoint hasn't been reached
+        while dist_between(current_location, target_loc) >= self.AT_WAYPOINT:# While the next waypoint hasn't been reached
            # print 'current location:', current_location
            # print 'target location:',target_loc
             
@@ -127,39 +129,57 @@ class Behaviour():
     #                # Make new obstacle infront of boat
     #                obstacles.append(Point(current_location),WEIGHT_OBST)#TODO this should be infront of boat, not on boat!
     #            prev_speed = gpsp.get_speed() #TODO this might change between comparsion and setting - use constant for comparison first!
-                # add vectors
                 
+            # Add vectors    
             overall = np.array([0,0])
-           # print 'orig',overall
+
             if len(self.obstacles) >=1:
                 for obs in self.obstacles:
-                   # print 'this obstacle: ',obs
-                    overall += obs.get_vector(current_location,ROUNDING)
-                    #print 'obs', overall
-                   # print 'that obs was ok'
+                    overall += obs.get_vector(current_location,self.ROUNDING)
+                    
             if len(self.perim_lines) >= 1:       
                 for bnd in self.perim_lines:
-                   # print 'This boundry: ', bnd
-                    overall += bnd.get_vector(current_location,ROUNDING)
-                    #print 'bnd', overall
-                    #print 'that boundary was ok'
+                    overall += bnd.get_vector(current_location,self.ROUNDING)
                 
-            overall += target_pt.get_vector(current_location,ROUNDING)
-            #print overall
-           # print 'that all worked!'
+            overall += target_pt.get_vector(current_location,self.ROUNDING)
+            
             direction = int(get_direction(overall))
+            
             #TODO send direction to arduino
             print '----Direction:', direction, '----'
             print 'Distance to target: ',dist_between(current_location, target_loc)
             print "\r%s,%s,\"%s\",W"%(current_location.lat_deg,current_location.lon_deg,direction)
+
+            # Save data to log file
             logfile = open("logs.csv","a")
-            logfile.write("\r%s,%s,\"%s\",W"%(current_location.lat_deg,current_location.lon_deg,direction))
+            logfile.write("\r%s,%s,\"%s Bearing: %s\",W"%(current_location.lat_deg,current_location.lon_deg,str(datetime.now().strftime('%H:%M:%S')),direction))
             logfile.close()
-            sleep(1)   
-            current_location = Location(gpsp.get_latitude(),gpsp.get_longitude()) #TODO get stuff from gps
-            while gpsp.get_speed() > 20 or (current_location.lat_deg == 0 and current_location.lon_deg == 0 ) or current_location.lat_deg is NaN or current_location.lon_deg is NaN:  #decide better value for gps being silly and jumping
+            
+            sleep(1)
+
+            # Refresh values for comparison on next iteration of loop
+            current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude()) #TODO get stuff from gps
+            # Check the gps has a fix and hasn't jumped
+            while self.gpsp.get_speed() > 20 or (current_location.lat_deg == 0 and current_location.lon_deg == 0 ) \
+                  or current_location.lat_deg is NaN or current_location.lon_deg is NaN:  
                 print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
                 sleep(1)
-                current_location = Location(gpsp.get_latitude(),gpsp.get_longitude())
+                current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude())
+                
         print 'Finished station keeping...'
+
+    def simple_areascann(self, waypoints):
+        """
+        This is a very simplistic areascanning behaviour. Given a list of waypoints
+        within the boundaries of the lake, it will navigate to those points
+        in the order specified (calling go_to_waypoint() for every waypoint
+        in the list.
+        """
+        for pnt in waypoints:
+            go_to_waypoint(pnt)
+
+        print 'Finished Areascann...'
+        
+    
+        
         

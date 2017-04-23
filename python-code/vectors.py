@@ -16,35 +16,46 @@ class Vector(object):
         ([xforce,yforce]).
         """
         dist = self.get_dist_to(loc_current)
-        #print 'distance works'
         #print 'distance: ', dist
         bearing = bearing_to(loc_current ,self.closest_point(loc_current))
         #print 'bearing: ', bearing
         #print 'weight: ', self.weight
-        #print 'bearing works'
+        
         if self.weight >= 0: # This is attractive, so takes form f=mr**2
-            y_force = np.around(self.weight*((dist**2)*np.cos(np.radians(bearing))),\
-                ROUNDING)
-            #print 'y',y_force
-           # print 'y force works'
-            x_force = np.around(self.weight*((dist**2)*np.cos(np.radians(90-bearing)))\
-                , ROUNDING)
-           # print 'x force works'
-            #print 'x',x_force
+            force = self.weight*(dist**2)
+            
+            # fy = fcos(bearing), fx = fsin(bearing)
+            y_force = np.around(force*np.cos(np.radians(bearing)), ROUNDING)
+            x_force = np.around(force*np.sin(np.radians(bearing)), ROUNDING)
+
+            # Prevent the attractive force overpowering obstacles/boundaries
+            x_force,y_force = constrain_vector(x_force,y_force,100)
+            
         else: # This is repelling, so takes form f=m/r**2
-            y_force = np.around(self.weight/((dist**2)*np.cos(np.radians(bearing))),\
-                ROUNDING)
-            #print 'y',y_force
-           # print 'y force works'
-            x_force = np.around(self.weight/((dist**2)*np.cos(np.radians(90-bearing)))\
-                , ROUNDING)
-           # print 'x force works
-            #print 'x',x_force
+            force = self.weight/(dist**2)
+
+            # fy = fcos(bearing), fx = fsin(bearing)
+            y_force = np.around(force*np.cos(np.radians(bearing)), ROUNDING)
+            x_force = np.around(force*np.sin(np.radians(bearing)), ROUNDING)
+            
+        #print 'y',y_force
+        #print 'x',x_force
         # these should be left as float for accuracy, later results to be 
         # converted to int for arduino to read
         self.vector = np.array([x_force,y_force])
         return self.vector
+
+def constrain_vector(x_force,y_force,limit):
+    if x_force >limit:
+        y_force = (limit/x_force) * y_force
+        x_force = limit
         
+    if y_force >limit:
+        x_force = (limit/y_force) * x_force
+        y_force = limit
+
+    return x_force,y_force
+
 def get_direction(vector):#TODO check syntax
     """
     Return the angle of the force experienced due to the given vector,
