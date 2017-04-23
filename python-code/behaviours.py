@@ -92,7 +92,7 @@ class Behaviour():
         #        obstacle =  to list of objects
 
 
-    def go_to_waypoint(self, target_loc):
+    def go_to_waypoint(self, target_loc, prev_loc=None):
         """
         The station keeping behaviour. Will take the boat to a specified point
         and stay at the specified point for a set length of time (station_time).
@@ -117,7 +117,11 @@ class Behaviour():
             print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
             sleep(1)
             current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude())
-        
+
+        if prev_loc == None:
+            prev_loc = current_location
+        path = Line([prev_loc,target_loc],10) #TODO make this take WEIGHT_LANE rather than constant
+            
         print 'Distance to target: ',dist_between(current_location, target_loc)
         while dist_between(current_location, target_loc) >= self.AT_WAYPOINT:# While the next waypoint hasn't been reached
            # print 'current location:', current_location
@@ -141,6 +145,7 @@ class Behaviour():
                 for bnd in self.perim_lines:
                     overall += bnd.get_vector(current_location,self.ROUNDING)
                 
+            overall += path.get_vector(current_location,self.ROUNDING)
             overall += target_pt.get_vector(current_location,self.ROUNDING)
             
             direction = int(get_direction(overall))
@@ -179,9 +184,14 @@ class Behaviour():
         logfile.write("\rNEW_LOG SimpleScan %s"%(str(datetime.now())))
         logfile.close()
         
-        for pnt in waypoints:
-            print 'going to',pnt
-            self.go_to_waypoint(pnt)
+        for i, pnt in enumerate(waypoints):
+            print '-------------------- going to',pnt, '--------------------\n'
+            if i > 0:
+                self.go_to_waypoint(pnt, waypoints[i-1])
+            else:
+                self.go_to_waypoint(pnt)
+            
+            
 
         print 'Finished Areascann...'
         
