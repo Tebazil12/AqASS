@@ -152,7 +152,7 @@ class Behaviour():
 
             # Save data to log file
             logfile = open("logs.csv","a")
-            logfile.write("\r%s,%s,\"%s Bearing: %s\",W"%(current_location.lat_deg,current_location.lon_deg,str(datetime.now().strftime('%H:%M:%S')),direction))
+            logfile.write("\r%s,%s,\"%s Bearing: %s Dist: %s\",W"%(current_location.lat_deg,current_location.lon_deg,str(datetime.now().strftime('%H:%M:%S')),direction,dist_between(current_location, target_loc)))
             logfile.close()
             
             sleep(1)
@@ -180,6 +180,7 @@ class Behaviour():
         logfile.close()
         
         for pnt in waypoints:
+            print 'going to',pnt
             self.go_to_waypoint(pnt)
 
         print 'Finished Areascann...'

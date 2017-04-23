@@ -3,3 +3,4 @@ ardunio-code/.travis.yml
 *.pioenvs
 *.pyc
 *__
+python-code/logs.csv
