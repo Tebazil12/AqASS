@@ -105,12 +105,15 @@ try: # To stop gps thread from living if program throws an error
     print 'Running behaviours...'
     bh = Behaviour(perimeter_lines, perimeter_locs, obstacles,WEIGHT_WAYP,AT_WAYPOINT,ROUNDING,gpsp)
 
-    bh.go_to_waypoint(start_loc)
-    print "First station keep done!"
+    simple_waypts = read_locations("waypoints.csv")
+    bh.simple_areascann(simple_waypts)
+    
+    #bh.go_to_waypoint(start_loc)
+    #print "First station keep done!"
 
    # bh.areascann(RESOLUTION)
 
-    bh.go_to_waypoint(end_loc)
+   # bh.go_to_waypoint(end_loc)
     #-------------------#
 
     print 'Shutting everything down...'

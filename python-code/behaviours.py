@@ -100,7 +100,7 @@ class Behaviour():
         print 'Going to waypoint',target_loc,' ...'
 
         logfile = open("logs.csv","a")
-        logfile.write("\rNEW_LOG %s"%str(datetime.now()))
+        logfile.write("\rNEW_LOG Waypoint%s %s"%(target_loc,str(datetime.now())))
         logfile.close()
 
         target_pt = Point(target_loc, self.WEIGHT_WAYP)
@@ -175,8 +175,12 @@ class Behaviour():
         in the order specified (calling go_to_waypoint() for every waypoint
         in the list.
         """
+        logfile = open("logs.csv","a")
+        logfile.write("\rNEW_LOG SimpleScan %s"%(str(datetime.now())))
+        logfile.close()
+        
         for pnt in waypoints:
-            go_to_waypoint(pnt)
+            self.go_to_waypoint(pnt)
 
         print 'Finished Areascann...'
         
