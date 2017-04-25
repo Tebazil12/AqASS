@@ -51,8 +51,8 @@ void initMotor(int pin){//from Aled's original boat code
  *
  */
 void setMotors(int speed){
-  int degrees = mpsToDeg(speed); //TODO when speed is float, must remember to convert to int
-  esc.write(degrees);
+  //int degrees = mpsToDeg(speed); //TODO when speed is float, must remember to convert to int
+  esc.write(speed); //degrees);
 }
 
 void stopMotors(){

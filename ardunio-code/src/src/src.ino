@@ -204,8 +204,8 @@ void setup() {
   headBias = 0;
   
   //TODO find central positions for the rudder, and nice start speed for the motors
-  fullSpeed =  int(speedFrac * (getMaxSpeed()-getStopSpeed()));
-  halfSpeed = int(speedFrac *((getMaxSpeed() - getStopSpeed())/2));
+  fullSpeed =  150;// int(speedFrac * (getMaxSpeed()-getStopSpeed()));
+  halfSpeed = 120;// int(speedFrac *((getMaxSpeed() - getStopSpeed())/2));
 }
 
 void loop(){
@@ -245,7 +245,7 @@ void loop(){
     }else{ /* Turn a tight corner at half speed to decrease turning circle */
       motorSpeed = halfSpeed; 
     }
-    motorSpeed = constrain(motorSpeed, getMinSpeed() , getMaxSpeed());
+    //motorSpeed = constrain(motorSpeed, getMinSpeed() , getMaxSpeed());
 
     /* Set speed and rudders */
     setRudders(-rudderAngle); //rename this to TUrn(angle) ? to make this based on angle of boat instead of rudders? (in this case those are ==)
