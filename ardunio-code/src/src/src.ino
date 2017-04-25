@@ -29,12 +29,12 @@ SOFTWARE.*/
 
 #define MAX_SERIALIN 9 /* The max number of chars that can be read in from the pi*/
 
-#define PIN_MOTORS 9 /* Pin the motors are attached to */
-#define PIN_RUDDERS 8 /* Pin the rudders are attached to */
+#define PIN_MOTORS A2 /* Pin the motors are attached to */
+#define PIN_RUDDERS 9 /* Pin the rudders are attached to */
 
 //TODO change to be different for speed and heading!
 /* PID constants for Heading */
-#define KU 0.1 //TODO must experiment and change
+#define KU 1 //TODO must experiment and change
 #define TU 1 //TODO must experiment and change
 #define KP (0.6*KU) //Ziegler–Nichols method
 #define KI (1.2*KU/TU) //Ziegler–Nichols method
@@ -57,7 +57,7 @@ float speedFrac = 1; /* Where 1 indicates max speed, 0 stationary */
  * is reading 0, the offset should be what bearing the boat is actually facing
  * along according to a calibrated compass.
  */
-int compassOffset = 280;
+int compassOffset = 0;//280+29+11+74;
 
 unsigned long timePrev;
 
@@ -210,7 +210,7 @@ void setup() {
 
 void loop(){
   #ifdef DEBUG_PRINT
-  Serial.println("loop");
+  //Serial.println("loop");
   #endif
   
   /* Refresh values */
@@ -221,7 +221,7 @@ void loop(){
   int timePassed = timeNow - timePrev;
   
   #ifdef DEBUG_PRINT
-  Serial.print("time since: "); Serial.println(timePassed);
+  //Serial.print("time since: "); Serial.println(timePassed);
   Serial.print("d_h: ");Serial.print(headDesired);
   Serial.print("| a_h: "); Serial.print(headCurrent);
   #endif
@@ -231,9 +231,9 @@ void loop(){
     /* PID for Heading */
     int headError = headDiff(headCurrent, headDesired);
     headInteg = headInteg + (headError * (timePassed/1000.));
-    headInteg = constrain(headInteg, -500, 500); //note, do not call functions in constrain, will break! (read docs)
+    headInteg = constrain(headInteg, -100, 100); //note, do not call functions in constrain, will break! (read docs)
     int headDeriv = (headError - prevHeadErr)/(timePassed/1000.);
-    int rudderAngle = KP*headError + KI*headInteg + KD*headDeriv + headBias;//bias could be used on the fly to correct for crabbing of boat?
+    int rudderAngle = KP*headError + KI*headInteg + KD*headDeriv ;//+ headBias;//bias could be used on the fly to correct for crabbing of boat?
     int minAng =getHardRight();
     int maxAng =getHardLeft();
     rudderAngle = constrain(rudderAngle, minAng, maxAng);
@@ -248,7 +248,7 @@ void loop(){
     motorSpeed = constrain(motorSpeed, getMinSpeed() , getMaxSpeed());
 
     /* Set speed and rudders */
-    setRudders(rudderAngle); //rename this to TUrn(angle) ? to make this based on angle of boat instead of rudders? (in this case those are ==)
+    setRudders(-rudderAngle); //rename this to TUrn(angle) ? to make this based on angle of boat instead of rudders? (in this case those are ==)
     setMotors(motorSpeed); //rename this to setSpeed(speed) ? so then the driver handles motor speeds
    
    
@@ -261,5 +261,5 @@ void loop(){
     prevHeadErr = headError;
   }
   timePrev = timeNow;
-  delay(10);// TODO obviously, reduce this //note, any delay inside this loop will delay reading of next values/
+  delay(100);// TODO obviously, reduce this //note, any delay inside this loop will delay reading of next values/
 }

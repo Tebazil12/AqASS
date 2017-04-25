@@ -18,8 +18,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
-#define MAX_VALUE 170 /* The max raw value that can be sent to rudders*/
-#define MIN_VALUE 10 /* The min raw value that can be sent to rudders*/
+#define MAX_VALUE 150 /* The max raw value that can be sent to rudders*/
+#define MIN_VALUE 30 /* The min raw value that can be sent to rudders*/
 #define CENTER_VALUE 90 /* The raw value that sets the rudders to go straight */
 
 Servo rudder; //TODO see if there is a better place to put this
@@ -59,6 +59,7 @@ int rawToDeg(int value){
  */
 void setRudders(int angle){
   int raw = degToRaw(angle);
+  //Serial.print("raw");Serial.println(raw);
   rudder.write(raw);
 }
 
