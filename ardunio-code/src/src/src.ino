@@ -204,8 +204,8 @@ void setup() {
   headBias = 0;
   
   //TODO find central positions for the rudder, and nice start speed for the motors
-  fullSpeed =  int(speedFrac * (getMaxSpeed()-getStopSpeed()));
-  halfSpeed = int(speedFrac *((getMaxSpeed() - getStopSpeed())/2));
+  fullSpeed =  180;// int(speedFrac * (getMaxSpeed()-getStopSpeed()));
+  halfSpeed = 135;// int(speedFrac *((getMaxSpeed() - getStopSpeed())/2));
 }
 
 void loop(){
