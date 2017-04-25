@@ -156,7 +156,7 @@ class Behaviour():
             thing = 'h(' + str(direction) +')'
             print(thing)
             thing = thing.encode('utf-8')
-            ser.write(thing)
+            self.ser.write(thing)
             
             
             print '----Direction:', direction, '----'

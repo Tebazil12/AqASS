@@ -24,6 +24,7 @@ import unittest
 import csv
 import time
 import threading
+import serial
 from gps import *
 from vectors import Line, Point, Plane
 from locations import *
@@ -80,7 +81,7 @@ WEIGHT_PLANE = 0#1
 ROUNDING = 7 # no. of decimal places vectors are rounded to
 
 RESOLUTION = 3 #this will be the distance between adjacent paths of the boat
-AT_WAYPOINT = 2 # how close to the waypoint counts as being on the waypoint
+AT_WAYPOINT = 4 # how close to the waypoint counts as being on the waypoint
     
 
 perimeter_locs = read_locations("water.csv")
@@ -89,7 +90,7 @@ obstacles =[]
 read_obstacles()#TODO make this take args and return!
 start_finish = read_locations("home.csv")
 
-ser = serial.Serial('/dev/ttyUSB0')
+ser = serial.Serial('/dev/ttyUSB4')
 
 #current_lane = None #TODO write to a file/similar to make recovery easier?
 gpsp = GpsPoller()

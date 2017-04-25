@@ -30,7 +30,7 @@ SOFTWARE.*/
 #define MAX_SERIALIN 9 /* The max number of chars that can be read in from the pi*/
 
 #define PIN_MOTORS A2 /* Pin the motors are attached to */
-#define PIN_RUDDERS 9 /* Pin the rudders are attached to */
+#define PIN_RUDDERS A3 /* Pin the rudders are attached to */
 
 //TODO change to be different for speed and heading!
 /* PID constants for Heading */
@@ -231,7 +231,7 @@ void loop(){
     /* PID for Heading */
     int headError = headDiff(headCurrent, headDesired);
     headInteg = headInteg + (headError * (timePassed/1000.));
-    headInteg = constrain(headInteg, -100, 100); //note, do not call functions in constrain, will break! (read docs)
+    headInteg = constrain(headInteg, -10, 10); //note, do not call functions in constrain, will break! (read docs)
     int headDeriv = (headError - prevHeadErr)/(timePassed/1000.);
     int rudderAngle = KP*headError + KI*headInteg + KD*headDeriv ;//+ headBias;//bias could be used on the fly to correct for crabbing of boat?
     int minAng =getHardRight();
