@@ -6,7 +6,7 @@ from time import sleep
 from datetime import datetime
 
 class Behaviour():
-    def __init__(self,perimiter_lines, perimiter_locs, obstacles, WEIGHT_WAYP,AT_WAYPOINT,ROUNDING, gpsp):
+    def __init__(self,perimiter_lines, perimiter_locs, obstacles, WEIGHT_WAYP,AT_WAYPOINT,ROUNDING, gpsp,ser):
         self.perim_lines = perimiter_lines
         self.perim_locs =perimiter_locs
         self.obstacles = obstacles
@@ -14,6 +14,7 @@ class Behaviour():
         self.AT_WAYPOINT =AT_WAYPOINT
         self.ROUNDING =ROUNDING
         self.gpsp =gpsp
+        self.ser = ser
         
     def get_lanes(RESOLUTION):
         # Find furthest apart locations on water perimeter.
@@ -151,6 +152,13 @@ class Behaviour():
             direction = int(get_direction(overall))
             
             #TODO send direction to arduino
+            
+            thing = 'h(' + str(direction) +')'
+            print(thing)
+            thing = thing.encode('utf-8')
+            ser.write(thing)
+            
+            
             print '----Direction:', direction, '----'
             print 'Distance to target: ',dist_between(current_location, target_loc)
             print "\r%s,%s,\"%s\",W"%(current_location.lat_deg,current_location.lon_deg,direction)

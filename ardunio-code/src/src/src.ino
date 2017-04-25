@@ -25,7 +25,7 @@ SOFTWARE.*/
 #include "Adafruit_Sensor.h"
 #include "Adafruit_HMC5883_U.h"
 
-#define DEBUG_PRINT
+//#define DEBUG_PRINT
 
 #define MAX_SERIALIN 9 /* The max number of chars that can be read in from the pi*/
 
@@ -146,7 +146,7 @@ void serialEvent(){
   case 'h':
     temp = getNumber(nextLine);
     if(temp >= 360 || temp < 0){
-      Serial.println("x"); /* Send error message to Pi */
+     // Serial.println("x"); /* Send error message to Pi */
     }else{
     headDesired = temp;
     }
@@ -169,15 +169,15 @@ void serialEvent(){
   case 'o': //TODO investigate if this is needed from the pi, or if hardcoding this is ok
     temp =  getNumber(nextLine);
     if(temp >= 360 || temp < 0){
-      Serial.println("x");
+     // Serial.println("x");
     }else{
     compassOffset = temp;
     }
     break;
     
   /* Unrecognised Command */
-  default:
-    Serial.println("x");
+  //default:
+   // Serial.println("x");
   
   }
   
