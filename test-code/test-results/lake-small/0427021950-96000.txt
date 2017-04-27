@@ -1,0 +1,11 @@
+type	latitude	longitude	name	desc	color
+T	52.4046477	-3.8692421	ways	Length: 42.69 m (140.1 ft)	#0000cc
+T	52.4048882	-3.8691777
+T	52.4048244	-3.8689739
+
+type	latitude	longitude	name	desc	color
+T	52.4052629	-3.8693306	bounds	Length: 0.252 km (0.157 mi)	
+T	52.4051091	-3.8682389
+T	52.4043106	-3.8688827
+T	52.4045266	-3.8699555
+
