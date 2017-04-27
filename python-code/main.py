@@ -90,7 +90,7 @@ obstacles =[]
 read_obstacles()#TODO make this take args and return!
 start_finish = read_locations("home.csv")
 
-ser = serial.Serial('/dev/ttyUSB0')
+ser = serial.Serial('/dev/ttyUSB3')
 
 #current_lane = None #TODO write to a file/similar to make recovery easier?
 gpsp = GpsPoller()
