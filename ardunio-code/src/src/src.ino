@@ -36,9 +36,9 @@ SOFTWARE.*/
 /* PID constants for Heading */
 #define KU 1 //TODO must experiment and change
 #define TU 1 //TODO must experiment and change
-#define KP (0.6*KU) //Ziegler–Nichols method
-#define KI (1.2*KU/TU) //Ziegler–Nichols method
-#define KD (3*KU*TU/40) //Ziegler–Nichols method
+#define KP 2//(0.6*KU) //Ziegler–Nichols method
+#define KI 0 //(1.2*KU/TU) //Ziegler–Nichols method
+#define KD 0 //(3*KU*TU/40) //Ziegler–Nichols method
 
 //TODO check if default values make sense //TODO move initialization of values to setup()
 int headDesired; //init in setup
@@ -98,7 +98,7 @@ int headDiff(int head1, int head2){
   int angle3 = (360-head1)+head2;
 
   if(abs(angle1)<=abs(angle2) && abs(angle1)<=abs(angle3)){
-    return angle1;
+    return -angle1;
   }
   else if (abs(angle2)<=abs(angle1) && abs(angle2) <=abs(angle3)){
     return angle2;
@@ -210,7 +210,7 @@ void setup() {
 
 void loop(){
   #ifdef DEBUG_PRINT
-  //Serial.println("loop");
+  Serial.println("loop");
   #endif
   
   /* Refresh values */
