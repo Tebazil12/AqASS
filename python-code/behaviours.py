@@ -1,6 +1,6 @@
 from vectors import Line, Point, Plane, get_direction
 from locations import dist_between, Location
-from gps import *
+#from gps import *
 import numpy as np
 from time import sleep
 from datetime import datetime
@@ -113,11 +113,11 @@ class Behaviour():
         
 
         # Check there is a gps fix
-        while (current_location.lat_deg == 0 and current_location.lon_deg == 0 )\
-              or current_location.lat_deg is NaN or current_location.lon_deg is NaN:
-            print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
-            sleep(1)
-            current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude())
+       # while (current_location.lat_deg == 0 and current_location.lon_deg == 0 )\
+        #      or current_location.lat_deg is NaN or current_location.lon_deg is NaN:
+         #   print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?#
+       #     sleep(1)
+        #    current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude())
 
         if prev_loc == None:
             prev_loc = current_location
@@ -155,8 +155,8 @@ class Behaviour():
             
             thing = 'h(' + str(direction) +')'
             print(thing)
-            thing = thing.encode('utf-8')
-            self.ser.write(thing)
+            #thing = thing.encode('utf-8')
+            #self.ser.write(thing)
             
             
             print '----Direction:', direction, '----'
@@ -173,11 +173,11 @@ class Behaviour():
             # Refresh values for comparison on next iteration of loop
             current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude()) #TODO get stuff from gps
             # Check the gps has a fix and hasn't jumped
-            while self.gpsp.get_speed() > 20 or (current_location.lat_deg == 0 and current_location.lon_deg == 0 ) \
-                  or current_location.lat_deg is NaN or current_location.lon_deg is NaN:  
-                print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
-                sleep(1)
-                current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude())
+         #   while self.gpsp.get_speed() > 20 or (current_location.lat_deg == 0 and current_location.lon_deg == 0 ) \
+          #        or current_location.lat_deg is NaN or current_location.lon_deg is NaN:  
+           #     print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?#
+            #    sleep(1)
+             #   current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude())
                 
         print 'Finished station keeping...'
 

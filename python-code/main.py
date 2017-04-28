@@ -25,11 +25,11 @@ import csv
 import time
 import threading
 import serial
-from gps import *
+#from gps import *
 from vectors import Line, Point, Plane
 from locations import *
 from behaviours import Behaviour
-from gps_driver import GpsPoller
+from gps_faker import GpsPoller
     
 def read_locations(file_1):
     """ Read in co-ordinates of water perimeter."""
@@ -90,7 +90,7 @@ obstacles =[]
 read_obstacles()#TODO make this take args and return!
 start_finish = read_locations("home.csv")
 
-ser = serial.Serial('/dev/ttyUSB3')
+#ser = serial.Serial('/dev/ttyUSB3')
 
 #current_lane = None #TODO write to a file/similar to make recovery easier?
 gpsp = GpsPoller()
@@ -105,7 +105,7 @@ try: # To stop gps thread from living if program throws an error
     start_loc = start_finish[0] # TODO handle errors if file is empty, maybe use startup location
 
     print 'Running behaviours...'
-    bh = Behaviour(perimeter_lines, perimeter_locs, obstacles,WEIGHT_WAYP,AT_WAYPOINT,ROUNDING,gpsp,ser)
+    bh = Behaviour(perimeter_lines, perimeter_locs, obstacles,WEIGHT_WAYP,AT_WAYPOINT,ROUNDING,gpsp,'ser')
 
     simple_waypts = read_locations("waypoints.csv")
     bh.simple_areascann(simple_waypts)
@@ -122,23 +122,23 @@ try: # To stop gps thread from living if program throws an error
     #shuteverything down
     #tell arduino to sleeps
     print 'finish'
-    ser.write(b'e')
+    #ser.write(b'e')
     x = ser.readline().strip()
     print 'the arduino said: ',x
-    ser.close()
+    #ser.close()
     
     # ask arduino to sleep so many times, if it doesnt after 5 or so, sleep pi anyway
     print "\nKilling gps Thread..." # Should go at very end
-    gpsp.running = False
-    gpsp.join()
+    #gpsp.running = False
+    #gpsp.join()
     
 except Exception as e:
-    print 'Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e), e
+    #print 'Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e), e
     print e.__doc__
     print e.message
     print "\nKilling Thread..."
-    gpsp.running = False #TODO move this to gps-driver
-    gpsp.join() # wait for the thread to finish what it's doing
+    #gpsp.running = False #TODO move this to gps-driver
+    #gpsp.join() # wait for the thread to finish what it's doing
 
 print "Done.\nExiting."
             
