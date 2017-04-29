@@ -27,22 +27,21 @@ SOFTWARE.*/
 
 //#define DEBUG_PRINT
 
-#define MAX_SERIALIN 9 /* The max number of chars that can be read in from the pi*/
+#define MAX_SERIALIN 9  /* The max number of chars that can be read in from the pi*/
 
-#define PIN_MOTORS A2 /* Pin the motors are attached to */
-#define PIN_RUDDERS A3 /* Pin the rudders are attached to */
+#define PIN_MOTORS A2   /* Pin the motors are attached to */
+#define PIN_RUDDERS A3  /* Pin the rudders are attached to */
 
-//TODO change to be different for speed and heading!
 /* PID constants for Heading */
 #define KU 1 //TODO must experiment and change
 #define TU 1 //TODO must experiment and change
-#define KP 2//(0.6*KU) //Ziegler–Nichols method
-#define KI 0 //(1.2*KU/TU) //Ziegler–Nichols method
+#define KP 2//(0.6*KU)      //Ziegler–Nichols method
+#define KI 0 //(1.2*KU/TU)  //Ziegler–Nichols method
 #define KD 0 //(3*KU*TU/40) //Ziegler–Nichols method
 
-//TODO check if default values make sense //TODO move initialization of values to setup()
-int headDesired; //init in setup
-int headCurrent; // in degrees (min 0, max 359)
+//TODO move initialization of values to setup()
+int headDesired; /* in degrees, min 0, max 359 */
+int headCurrent; /* in degrees, min 0, max 359 */
 int prevHeadErr;
 int headInteg;
 int headBias;
@@ -156,7 +155,6 @@ void serialEvent(){
   case 'e':
     stopMotors();
     stopRudders();
-    //Serial.write('e');
     delay(100);
     Serial.println('e');
     delay(100); // to allow time for serial to print
@@ -192,6 +190,7 @@ void setup() {
   
   Serial.begin(9600);
   delay(1000); /* So code doesn't run when reprogramming */
+  
   initCompass();
   initRudder(PIN_RUDDERS);
   initMotor(PIN_MOTORS);
@@ -203,7 +202,6 @@ void setup() {
   headInteg = 0;
   headBias = 0;
   
-  //TODO find central positions for the rudder, and nice start speed for the motors
   fullSpeed =  150;// int(speedFrac * getMaxSpeed());
   halfSpeed = 120;// int(speedFrac *(getMaxSpeed()/2));
 }
