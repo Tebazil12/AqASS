@@ -13,7 +13,7 @@ import re
 # draw the edge of the map projection region (the projection limb)
 #map.drawmapboundary(fill_color='aqua')
 
-loc_file = open("lake_big/logs-first-vis-vect.csv", "rU") 
+loc_file = open("big-feild-westward/logs-for-vis-vecs.csv", "rU") 
 reader = csv.reader(loc_file)
 list_1=[]
 x = []
@@ -70,8 +70,8 @@ x_b = np.sin(np.radians(b))
 plt.quiver(y, x, x_b, y_b,width=0.001,scale=1 / 0.015)#, R)#, alpha=.5)#http://matplotlib.org/examples/pylab_examples/quiver_demo.html
 #plt.quiver(X, Y, U, V, edgecolor='k', facecolor='None', linewidth=.5)
 
-w_x =52.4003569,52.4008446,52.4008315,52.4003405,52.3996090
-w_y = -3.8704652,-3.8704813,-3.8697410,-3.8697892,-3.8690946
+#w_x =52.4003569,52.4008446,52.4008315,52.4003405,52.3996090
+#w_y = -3.8704652,-3.8704813,-3.8697410,-3.8697892,-3.8690946
 
 
 
@@ -82,5 +82,5 @@ w_y = -3.8704652,-3.8704813,-3.8697410,-3.8697892,-3.8690946
 #plt.ylim(-1, n)
 #plt.yticks(())
 #map.scatter(w_y,w_x)
-plt.scatter(w_y,w_x)
+#plt.scatter(w_y,w_x)
 plt.show()
