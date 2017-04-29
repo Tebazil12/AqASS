@@ -18,23 +18,30 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
-#define MAX_VALUE 150 /* The max raw value that can be sent to rudders*/
-#define MIN_VALUE 30 /* The min raw value that can be sent to rudders*/
+#define MAX_VALUE 150   /* The max raw value that can be sent to rudders */
+#define MIN_VALUE 30    /* The min raw value that can be sent to rudders */
 #define CENTER_VALUE 90 /* The raw value that sets the rudders to go straight */
 
-Servo rudder; //TODO see if there is a better place to put this
+Servo rudder;
 
+/** Initialize servos by attaching to pin, and set them to point dead ahead */
 void initRudder(int pin){
   rudder.attach(pin);
   rudder.write(CENTER_VALUE);
 }
 
-/* Covert from what the main code expects (angle of rudder in degrees) to raw rudder values */
+/**
+ * Covert from what the main code expects (angle of rudder in degrees) to raw
+ * rudder values 
+ */
 int degToRaw(int angle){
   return 180-(angle+90);
 }
 
-/* Covert from raw rudder values to what the main code expects (angle of rudder in degrees) */
+/**
+ * Covert from raw rudder values to what the main code expects (angle of 
+ * rudder in degrees) 
+ */
 int rawToDeg(int value){
   return (180-value)-90;
 }
@@ -42,10 +49,11 @@ int rawToDeg(int value){
 /**
  * Corresponds to the angle you want the rudders set at,
  * with 0 setting the boat to go straight forward, -90 should turn the
- * rudders fully to the left, and 90 should turn the rudders fully to the right.
+ * rudders fully to the left, and 90 should turn the rudders fully to 
+ * the right.
  *
  * With this boat, the rudders will turn to a max of ~45 degrees in either
- * direction, not 90 degrees (I would be impressed to find a boat that can).
+ * direction, not 90 degrees.
  *
  *   _      _      _
  *  / \    / \    / \
@@ -59,7 +67,6 @@ int rawToDeg(int value){
  */
 void setRudders(int angle){
   int raw = degToRaw(angle);
-  //Serial.print("raw");Serial.println(raw);
   rudder.write(raw);
 }
 
@@ -72,6 +79,7 @@ void stopRudders(){
   rudder.detach();
 }
 
+/* Return the  */
 int getHardLeft(){
   return rawToDeg(MAX_VALUE);
 }

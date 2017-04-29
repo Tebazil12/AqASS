@@ -234,8 +234,8 @@ void loop(){
     headInteg = constrain(headInteg, -10, 10); //note, do not call functions in constrain, will break! (read docs)
     int headDeriv = (headError - prevHeadErr)/(timePassed/1000.);
     int rudderAngle = KP*headError + KI*headInteg + KD*headDeriv ;//+ headBias;//bias could be used on the fly to correct for crabbing of boat?
-    int minAng =getHardRight();
-    int maxAng =getHardLeft();
+    int maxAng =getHardRight();
+    int minAng =getHardLeft();
     rudderAngle = constrain(rudderAngle, minAng, maxAng);
 
     /* Speed */ 
