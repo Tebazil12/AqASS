@@ -45,7 +45,7 @@ class Vector(object):
         self.vector = np.array([x_force,y_force])
         return self.vector
 
-def constrain_vector(x_force,y_force,limit):
+def constrain_vector(x_force,y_force,limit): #TODO this is bad! constrain original force before instead of resulting vector
     if x_force >limit:
         y_force = (limit/x_force) * y_force
         x_force = limit
