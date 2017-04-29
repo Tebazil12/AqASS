@@ -93,12 +93,12 @@ int wrapHeading(int angle){
  */
 int headDiff(int head1, int head2){
   /* Angle is dependant on which quadrant the two headings lie. */
-  int angle1 = (360-head2)+head1;
+  int angle1 = -((360-head2)+head1);
   int angle2 = head2-head1;
   int angle3 = (360-head1)+head2;
 
   if(abs(angle1)<=abs(angle2) && abs(angle1)<=abs(angle3)){
-    return -angle1;
+    return angle1;
   }
   else if (abs(angle2)<=abs(angle1) && abs(angle2) <=abs(angle3)){
     return angle2;
