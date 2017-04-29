@@ -79,15 +79,12 @@ void stopRudders(){
   rudder.detach();
 }
 
-/* Return the  */
+/* Return the lowest (left most) angle that the rudders can be set at */
 int getHardLeft(){
   return rawToDeg(MAX_VALUE);
 }
 
+/* Return the highest (right most) angle that the rudders can be set at */
 int getHardRight(){
   return rawToDeg(MIN_VALUE);
-}
-
-int getCenter(){
-  return rawToDeg(CENTER_VALUE);
 }
