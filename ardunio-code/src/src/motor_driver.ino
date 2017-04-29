@@ -26,47 +26,47 @@ SOFTWARE.*/
 #define SPEED_MAX 4
 Servo esc;
 
-/** Converts from degrees to m/s */
+/** Convert from degrees to m/s */
 int degToMPS(int degree){
-  int speed = (degree/float(DEGREE_MAX))*SPEED_MAX; //TODO this assumes liniar corelation, check!
-  return speed; //TODO implement!
+  //TODO this assumes liniar corelation, check!
+  int speed = (degree/float(DEGREE_MAX))*SPEED_MAX; 
+  return speed;
 }
 
-/** Converts from m/s to degrees */
-int mpsToDeg(int speed){//TODO when speed is float, must remember to convert to int
-  int deg = int((speed/SPEED_MAX)* DEGREE_MAX); //TODO this assumes liniar corelation, check!
-  return deg; //TODO implement!
+/** Convert from m/s to degrees */
+int mpsToDeg(int speed){//TODO speed needs to be a float!
+  //TODO this assumes liniar corelation, check!
+  int deg = int((speed/SPEED_MAX)* DEGREE_MAX); 
+  return deg;
 }
 
-/** Initializes motors */
-void initMotor(int pin){//from Aled's original boat code
+/** Initialize motors */
+void initMotor(int pin){
   esc.attach(pin);
   esc.write(DEGREE_ARM);
-  delay(5000); //TODO use something better than a delay?
+  delay(5000);
 }
 
 /**
  * Take speed in m/s and driver motors at this
  * speed.
- *
  */
-void setMotors(int speed){
-  //int degrees = mpsToDeg(speed); //TODO when speed is float, must remember to convert to int
+void setMotors(int speed){ //TODO speed needs to be a float!
+  //int degrees = mpsToDeg(speed);
   esc.write(speed); //degrees);
 }
 
+/** Stop the motors. */
 void stopMotors(){
   esc.write(DEGREE_STOP);
 }
 
+/** Return the maximum speed the motors can go forward in m/s */
 int getMaxSpeed(){ //TODO this should be a float
   return degToMPS(DEGREE_MAX);
 }
 
-int getMinSpeed(){
+/** Return the maximum speed the motors can go backward in m/s */
+int getMinSpeed(){ //TODO this should be a float
   return degToMPS(DEGREE_MIN);
-}
-
-int getStopSpeed(){
-  return degToMPS(DEGREE_STOP);
 }
