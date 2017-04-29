@@ -31,12 +31,12 @@ void initRudder(int pin){
 
 /* Covert from what the main code expects (angle of rudder in degrees) to raw rudder values */
 int degToRaw(int angle){
-  return angle+90;
+  return 180-(angle+90);
 }
 
 /* Covert from raw rudder values to what the main code expects (angle of rudder in degrees) */
 int rawToDeg(int value){
-  return value-90;
+  return (180-value)-90;
 }
 
 /**

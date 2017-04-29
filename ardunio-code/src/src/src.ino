@@ -248,7 +248,7 @@ void loop(){
     //motorSpeed = constrain(motorSpeed, getMinSpeed() , getMaxSpeed());
 
     /* Set speed and rudders */
-    setRudders(-rudderAngle); //rename this to TUrn(angle) ? to make this based on angle of boat instead of rudders? (in this case those are ==)
+    setRudders(rudderAngle); //rename this to TUrn(angle) ? to make this based on angle of boat instead of rudders? (in this case those are ==)
     setMotors(motorSpeed); //rename this to setSpeed(speed) ? so then the driver handles motor speeds
    
    
