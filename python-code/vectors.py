@@ -47,9 +47,9 @@ def constrain_force(force, limit_min, limit_max):
     """ Limit force to between limit_min and limit_max """
     if force > limit_max:
         return limit_max
-    else if force < limit_min:
+    elif force < limit_min:
         return limit_min
-    else
+    else:
         return force
 
 def get_direction(vector):

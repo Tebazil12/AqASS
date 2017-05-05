@@ -129,7 +129,7 @@ class Behaviour():
         
 
         # Check there is a gps fix
-        while (current_location.lat_deg == 0\ 
+        while (current_location.lat_deg == 0\
                 and current_location.lon_deg == 0)\
                 or current_location.lat_deg is NaN\
                 or current_location.lon_deg is NaN:

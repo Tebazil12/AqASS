@@ -75,7 +75,7 @@ def get_perim_lines(perimeter_locs):
                          WEIGHT_BOUNDRY))
         else:
             #print perimeter_locs[i], 'to', perimeter_locs[i+1]
-            lines.append(Line([perimeter_locs[i],perimeter_locs[i+1]],\ 
+            lines.append(Line([perimeter_locs[i],perimeter_locs[i+1]],\
                          WEIGHT_BOUNDRY))
     return lines
         
