@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+############################ MODULES ##########################################
+
 import numpy as np
 #import matplotlib.pyplot as plt
 import unittest
@@ -30,6 +32,8 @@ from vectors import Line, Point, Plane
 from locations import *
 from behaviours import Behaviour
 from gps_driver import GpsPoller
+
+############################ FUNCTIONS ########################################
     
 def read_locations(file_1):
     """ Read in co-ordinates of water perimeter."""
@@ -53,81 +57,81 @@ def read_obstacles(): #TODO make this take args and return things
     reader2 = csv.reader(obs_file)
     for row in reader2:
         #print row
-        obstacles.append(Point(Location(float(row[0]),float(row[1])),int(row[2])))
+        obstacles.append(Point(Location(float(row[0]),float(row[1])),\
+                                        int(row[2])))
     obs_file.close()
 
 def get_perim_lines(perimeter_locs):
+    """ Read in co-ordinates of perimeter."""
+    # TODO SHOULD NOT USE NORMAL LINES! IF STARTING OUTSIDE OUTLINE, 
+    # WILL END UP GOING AWAY FROM START AND MAP
     lines = []
     size = len(perimeter_locs)
     #print size
     for i, thing in enumerate(perimeter_locs):
         if i+1 == size:
             #print perimeter_locs[i], 'to', perimeter_locs[0]
-            lines.append(Line([perimeter_locs[i],perimeter_locs[0]], WEIGHT_BOUNDRY))
+            lines.append(Line([perimeter_locs[i],perimeter_locs[0]],\
+                         WEIGHT_BOUNDRY))
         else:
             #print perimeter_locs[i], 'to', perimeter_locs[i+1]
-            lines.append(Line([perimeter_locs[i],perimeter_locs[i+1]], WEIGHT_BOUNDRY))
+            lines.append(Line([perimeter_locs[i],perimeter_locs[i+1]],\ 
+                         WEIGHT_BOUNDRY))
     return lines
         
     
-#-----SET UP-----#
+############################## SET UP #########################################
     
-WEIGHT_OBST = 0#-1 # will use f=m/r**2
-WEIGHT_WAYP = 10 #will use f=mr**2
-WEIGHT_LANE = 10 # will use f=mr**2
+WEIGHT_OBST = 0     # -1 # will use f=m/r**2
+WEIGHT_WAYP = 10    # will use f=mr**2
+WEIGHT_LANE = 10    # will use f=mr**2
 WEIGHT_BOUNDRY = -5 # probably f=m/r**2
-WEIGHT_PLANE = 0#1
+WEIGHT_PLANE = 0    # 1
 
-ROUNDING = 7 # no. of decimal places vectors are rounded to
+ROUNDING = 7    # no. of decimal places vectors are rounded to
 
-RESOLUTION = 3 #this will be the distance between adjacent paths of the boat
-AT_WAYPOINT = 4 # how close to the waypoint counts as being on the waypoint
+RESOLUTION = 3  # distance between adjacent lanes in area scan
+AT_WAYPOINT = 4 # distance from the waypoint that means being at the waypoint
     
 
 perimeter_locs = read_locations("water.csv")
-perimeter_lines = get_perim_lines(perimeter_locs) # TODO CANNOT USE NORMAL LINES! IF STARTING OUTSIDE OUTLINE, WILL END UP GOING AWAY FROM START AND MAP
+perimeter_lines = get_perim_lines(perimeter_locs) 
 obstacles =[]
 read_obstacles()#TODO make this take args and return!
 start_finish = read_locations("home.csv")
 
 ser = serial.Serial('/dev/ttyUSB1')
 
-#current_lane = None #TODO write to a file/similar to make recovery easier?
 gpsp = GpsPoller()
-#print type(gpsp)
+
 try: # To stop gps thread from living if program throws an error
     
     gpsp.init()
 
-    #-----MAIN CODE-----#
+    ############################ MAIN CODE ####################################
     if len(start_finish) == 2:
         end_loc = start_finish[1]
-    start_loc = start_finish[0] # TODO handle errors if file is empty, maybe use startup location
+    start_loc = start_finish[0] # TODO handle errors if file is empty
 
     print 'Running behaviours...'
-    bh = Behaviour(perimeter_lines, perimeter_locs, obstacles,WEIGHT_WAYP,AT_WAYPOINT,ROUNDING,gpsp,ser)
+    bh = Behaviour(perimeter_lines, perimeter_locs, obstacles, WEIGHT_WAYP,\
+                    AT_WAYPOINT, ROUNDING, gpsp, ser)
 
     simple_waypts = read_locations("waypoints.csv")
     bh.simple_areascann(simple_waypts)
     
-    #bh.go_to_waypoint(start_loc)
-    #print "First station keep done!"
-
-   # bh.areascann(RESOLUTION)
-
-   # bh.go_to_waypoint(end_loc)
-    #-------------------#
+    print 'Behaviours finished.'
+    ############################ SHUTDOWN CODE ################################
 
     print 'Shutting everything down...'
-    #shuteverything down
-    #tell arduino to sleeps
-    print 'finish'
     ser.write(b'e')
     x = ser.readline().strip()
     print 'the arduino said: ',x
+    # TODO ask arduino to sleep repeatedly, if it does not confirm after 5 or 
+    # so attempts, exit anyway
     ser.close()
     
-    # TODO ask arduino to sleep so many times, if it doesnt after 5 or so, sleep pi anyway
+    
     print "\nKilling gps Thread..." # Should go at very end
     gpsp.running = False
     gpsp.join()

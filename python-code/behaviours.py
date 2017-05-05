@@ -6,7 +6,11 @@ from time import sleep
 from datetime import datetime
 
 class Behaviour():
-    def __init__(self,perimiter_lines, perimiter_locs, obstacles, WEIGHT_WAYP,AT_WAYPOINT,ROUNDING, gpsp,ser):
+    """
+    Class which holds the possible behaviours to be used.
+    """
+    def __init__(self,perimiter_lines, perimiter_locs, obstacles,\
+                WEIGHT_WAYP,AT_WAYPOINT,ROUNDING, gpsp,ser):
         self.perim_lines = perimiter_lines
         self.perim_locs =perimiter_locs
         self.obstacles = obstacles
@@ -17,6 +21,10 @@ class Behaviour():
         self.ser = ser
         
     def get_lanes(RESOLUTION):
+        """ 
+        Return the lanes between the two furthest apart points on the 
+        perimiter. 
+        """
         # Find furthest apart locations on water perimeter.
         far_loc1 = None
         far_loc2 = None
@@ -32,10 +40,15 @@ class Behaviour():
         print far_loc1 , far_loc2 ,max_dist
         #return lanes
 
+############################ AREA SCAN BEHAVIOUR ##############################
+
     def areascan(RESOLUTION):
         """
         The area scanning behaviour. Should take the perimiter points, perimiter
-        lines and obstacles. Will then navigate within the perimiter along lanes.
+        lines and obstacles. Will then navigate within the perimiter along 
+        lanes.
+        
+        THIS IS NOT YET IMPLEMENTED. This is mostly notes and sudo code.
         """
         print 'Starting area scan...'
         waypoints = []
@@ -93,6 +106,8 @@ class Behaviour():
         #        obstacle =  to list of objects
 
 
+############################ WAYPOINT BEHAVIOUR ###############################
+
     def go_to_waypoint(self, target_loc, prev_loc=None):
         """
         The station keeping behaviour. Will take the boat to a specified point
@@ -106,35 +121,39 @@ class Behaviour():
         logfile.close()
 
         target_pt = Point(target_loc, self.WEIGHT_WAYP)
-        current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude())
-        #print 'current location:', current_location
-        
+        current_location = Location(self.gpsp.get_latitude(),\
+                                    self.gpsp.get_longitude())
+                
     #    prev_speed = None
         prev_time = None ##TODO
         
 
         # Check there is a gps fix
-        while (current_location.lat_deg == 0 and current_location.lon_deg == 0 )\
-              or current_location.lat_deg is NaN or current_location.lon_deg is NaN:
-            print 'gps lost, waiting for signal...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
+        while (current_location.lat_deg == 0\ 
+                and current_location.lon_deg == 0)\
+                or current_location.lat_deg is NaN\
+                or current_location.lon_deg is NaN:
+            print 'gps lost, waiting for signal...' 
+            #TODO if after so long no fix, stop arduino/motors and wait
             sleep(1)
-            current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude())
+            current_location = Location(self.gpsp.get_latitude(),\
+                                        self.gpsp.get_longitude())
 
         if prev_loc == None:
             prev_loc = current_location
-        path = Line([prev_loc,target_loc],10) #TODO make this take WEIGHT_LANE rather than constant
-            
-        #print 'Distance to target: ',dist_between(current_location, target_loc)
-        while dist_between(current_location, target_loc) >= self.AT_WAYPOINT:# While the next waypoint hasn't been reached
-           # print 'current location:', current_location
-           # print 'target location:',target_loc
-            
-            # Checking if stuck
-    #        if (time_now-prev_time)% 4 == 0: #TODO time this value with corners etc
-    #            if gpsp.get_speed() < 1 and prev_speed < 1:
+        path = Line([prev_loc,target_loc],10) #TODO make this take WEIGHT_LANE
+        
+        # While the next waypoint hasn't been reached
+        while dist_between(current_location, target_loc) >= self.AT_WAYPOINT:
+
+            #TODO Check if stuck 
+    #        if (time_now-prev_time)% 4 == 0: #TODO adjust this value
+    #            if gpsp.get_speed() < 1 and prev_speed < 1: 
+    #            #TODO need temp value to hold gpsp.get_speed() so doesnt change 
     #                # Make new obstacle infront of boat
-    #                obstacles.append(Point(current_location),WEIGHT_OBST)#TODO this should be infront of boat, not on boat!
-    #            prev_speed = gpsp.get_speed() #TODO this might change between comparsion and setting - use constant for comparison first!
+    #                obstacles.append(Point(current_location),WEIGHT_OBST)
+    #                #TODO this should be infront of boat, not on boat!
+    #            prev_speed = gpsp.get_speed() 
                 
             # Add vectors    
             overall = np.array([0,0])
@@ -152,8 +171,7 @@ class Behaviour():
             
             direction = int(get_direction(overall))
             
-            #TODO send direction to arduino
-            
+            # Send direction to Arduino            
             thing = 'h(' + str(direction) +')'
             #print(thing)
             thing = thing.encode('utf-8')
@@ -162,32 +180,41 @@ class Behaviour():
             
             print '--- Direction:', direction, '---', 'Distance:',\
                     dist_between(current_location, target_loc), 'm ---'
-            #print "\r%s,%s,\"%s\",W"%(current_location.lat_deg,current_location.lon_deg,direction)
 
             # Save data to log file
             logfile = open("logs.csv","a")
-            logfile.write("\r%s,%s,\"%s Bearing: %s Dist: %s\",W"%(current_location.lat_deg,current_location.lon_deg,str(datetime.now().strftime('%H:%M:%S')),direction,dist_between(current_location, target_loc)))
+            logfile.write("\r%s,%s,\"%s Bearing: %s Dist: %s\",W"%\
+                        (current_location.lat_deg,current_location.lon_deg,\
+                        str(datetime.now().strftime('%H:%M:%S')),direction,\
+                        dist_between(current_location, target_loc)))
             logfile.close()
             
             sleep(1)
 
             # Refresh values for comparison on next iteration of loop
-            current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude()) #TODO get stuff from gps
+            current_location = Location(self.gpsp.get_latitude(),\
+                                        self.gpsp.get_longitude())
+            
             # Check the gps has a fix and hasn't jumped
-            while self.gpsp.get_speed() > 20 or (current_location.lat_deg == 0 and current_location.lon_deg == 0 ) \
-                  or current_location.lat_deg is NaN or current_location.lon_deg is NaN:  
-                print 'gps lost, waiting for fix...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
+            while self.gpsp.get_speed() > 20 or (current_location.lat_deg == 0\
+                   and current_location.lon_deg==0) or current_location.lat_deg\
+                   is NaN or current_location.lon_deg is NaN:  
+                print 'gps lost, waiting for fix...' 
+                #TODO if after so long no fix, stop arduino/motors and wait
                 sleep(1)
-                current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude())
+                current_location = Location(self.gpsp.get_latitude(),\
+                                            self.gpsp.get_longitude())
                 
         print '---- LOCATION REACHED ----'
 
+############################ SIMPLE SCAN BEHAVIOUR ############################
+
     def simple_areascann(self, waypoints):
         """
-        This is a very simplistic areascanning behaviour. Given a list of waypoints
-        within the boundaries of the lake, it will navigate to those points
-        in the order specified (calling go_to_waypoint() for every waypoint
-        in the list.
+        This is a very simplistic areascanning behaviour. Given a list of 
+        waypoints within the boundaries of the lake, it will navigate to those 
+        points in the order specified (calling go_to_waypoint() ) for every 
+        waypoint in the list.
         """
         print '--------- SIMPLE AREA SCAN STARTED ---------\n'
         logfile = open("logs.csv","a")
@@ -195,16 +222,9 @@ class Behaviour():
         logfile.close()
         
         for i, pnt in enumerate(waypoints):
-            #print '---- NEXT POINT',pnt, '----\n'
             if i > 0:
                 self.go_to_waypoint(pnt, waypoints[i-1])
             else:
                 self.go_to_waypoint(pnt)
-            
-            
 
         print 'Finished Areascann...'
-        
-    
-        
-        
