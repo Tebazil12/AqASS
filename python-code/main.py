@@ -53,7 +53,7 @@ def read_locations(file_1):
     
 def read_obstacles(): #TODO make this take args and return things
     """ Read in co-ordinates and weights of known objects."""
-    obs_file = open("obstacles.csv", "r") 
+    obs_file = open("course/obstacles.csv", "r") 
     reader2 = csv.reader(obs_file)
     for row in reader2:
         #print row
@@ -94,11 +94,11 @@ RESOLUTION = 3  # distance between adjacent lanes in area scan
 AT_WAYPOINT = 4 # distance from the waypoint that means being at the waypoint
     
 
-perimeter_locs = read_locations("water.csv")
+perimeter_locs = read_locations("course/water.csv")
 perimeter_lines = get_perim_lines(perimeter_locs) 
 obstacles =[]
 read_obstacles()#TODO make this take args and return!
-start_finish = read_locations("home.csv")
+start_finish = read_locations("course/home.csv")
 
 ser = serial.Serial('/dev/ttyUSB1')
 
@@ -117,7 +117,7 @@ try: # To stop gps thread from living if program throws an error
     bh = Behaviour(perimeter_lines, perimeter_locs, obstacles, WEIGHT_WAYP,\
                     AT_WAYPOINT, ROUNDING, gpsp, ser)
 
-    simple_waypts = read_locations("waypoints.csv")
+    simple_waypts = read_locations("course/waypoints.csv")
     bh.simple_areascann(simple_waypts)
     
     print 'Behaviours finished.'
