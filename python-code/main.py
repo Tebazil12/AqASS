@@ -38,7 +38,7 @@ def read_locations(file_1):
     reader = csv.reader(loc_file)
     list_1=[]
     for row in reader:
-        print row
+        #print row
         list_1.append(Location(float(row[0]),float(row[1])))
     loc_file.close()
     
@@ -52,20 +52,20 @@ def read_obstacles(): #TODO make this take args and return things
     obs_file = open("obstacles.csv", "r") 
     reader2 = csv.reader(obs_file)
     for row in reader2:
-        print row
+        #print row
         obstacles.append(Point(Location(float(row[0]),float(row[1])),int(row[2])))
     obs_file.close()
 
 def get_perim_lines(perimeter_locs):
     lines = []
     size = len(perimeter_locs)
-    print size
+    #print size
     for i, thing in enumerate(perimeter_locs):
         if i+1 == size:
-            print perimeter_locs[i], 'to', perimeter_locs[0]
+            #print perimeter_locs[i], 'to', perimeter_locs[0]
             lines.append(Line([perimeter_locs[i],perimeter_locs[0]], WEIGHT_BOUNDRY))
         else:
-            print perimeter_locs[i], 'to', perimeter_locs[i+1]
+            #print perimeter_locs[i], 'to', perimeter_locs[i+1]
             lines.append(Line([perimeter_locs[i],perimeter_locs[i+1]], WEIGHT_BOUNDRY))
     return lines
         
@@ -94,7 +94,7 @@ ser = serial.Serial('/dev/ttyUSB1')
 
 #current_lane = None #TODO write to a file/similar to make recovery easier?
 gpsp = GpsPoller()
-print type(gpsp)
+#print type(gpsp)
 try: # To stop gps thread from living if program throws an error
     
     gpsp.init()

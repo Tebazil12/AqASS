@@ -98,7 +98,8 @@ class Behaviour():
         The station keeping behaviour. Will take the boat to a specified point
         and stay at the specified point for a set length of time (station_time).
         """
-        print 'Going to waypoint',target_loc,' ...'
+        #print '---- Going to waypoint',target_loc,'----'
+        print '---- NEXT POINT',target_loc, '----\n'
 
         logfile = open("logs.csv","a")
         logfile.write("\rNEW_LOG Waypoint%s %s"%(target_loc,str(datetime.now())))
@@ -115,7 +116,7 @@ class Behaviour():
         # Check there is a gps fix
         while (current_location.lat_deg == 0 and current_location.lon_deg == 0 )\
               or current_location.lat_deg is NaN or current_location.lon_deg is NaN:
-            print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
+            print 'gps lost, waiting for signal...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
             sleep(1)
             current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude())
 
@@ -123,7 +124,7 @@ class Behaviour():
             prev_loc = current_location
         path = Line([prev_loc,target_loc],10) #TODO make this take WEIGHT_LANE rather than constant
             
-        print 'Distance to target: ',dist_between(current_location, target_loc)
+        #print 'Distance to target: ',dist_between(current_location, target_loc)
         while dist_between(current_location, target_loc) >= self.AT_WAYPOINT:# While the next waypoint hasn't been reached
            # print 'current location:', current_location
            # print 'target location:',target_loc
@@ -159,8 +160,8 @@ class Behaviour():
             self.ser.write(thing)
             
             
-            print '----Direction:', direction, '----', 'Distance to target: ',\
-                    dist_between(current_location, target_loc), 'm ----'
+            print '--- Direction:', direction, '---', 'Distance:',\
+                    dist_between(current_location, target_loc), 'm ---'
             #print "\r%s,%s,\"%s\",W"%(current_location.lat_deg,current_location.lon_deg,direction)
 
             # Save data to log file
@@ -175,11 +176,11 @@ class Behaviour():
             # Check the gps has a fix and hasn't jumped
             while self.gpsp.get_speed() > 20 or (current_location.lat_deg == 0 and current_location.lon_deg == 0 ) \
                   or current_location.lat_deg is NaN or current_location.lon_deg is NaN:  
-                print 'gps lost...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
+                print 'gps lost, waiting for fix...' #TODO if after so long nothing happens, stop arduino/motors and wait/sleep?
                 sleep(1)
                 current_location = Location(self.gpsp.get_latitude(),self.gpsp.get_longitude())
                 
-        print 'Finished station keeping...'
+        print '---- LOCATION REACHED ----'
 
     def simple_areascann(self, waypoints):
         """
@@ -188,12 +189,13 @@ class Behaviour():
         in the order specified (calling go_to_waypoint() for every waypoint
         in the list.
         """
+        print '--------- SIMPLE AREA SCAN STARTED ---------\n'
         logfile = open("logs.csv","a")
         logfile.write("\rNEW_LOG SimpleScan %s"%(str(datetime.now())))
         logfile.close()
         
         for i, pnt in enumerate(waypoints):
-            print '-------------------- going to',pnt, '--------------------\n'
+            #print '---- NEXT POINT',pnt, '----\n'
             if i > 0:
                 self.go_to_waypoint(pnt, waypoints[i-1])
             else:
