@@ -154,14 +154,14 @@ class Behaviour():
             #TODO send direction to arduino
             
             thing = 'h(' + str(direction) +')'
-            print(thing)
+            #print(thing)
             thing = thing.encode('utf-8')
             self.ser.write(thing)
             
             
-            print '----Direction:', direction, '----'
-            print 'Distance to target: ',dist_between(current_location, target_loc)
-            print "\r%s,%s,\"%s\",W"%(current_location.lat_deg,current_location.lon_deg,direction)
+            print '----Direction:', direction, '----', 'Distance to target: ',\
+                    dist_between(current_location, target_loc), 'm ----'
+            #print "\r%s,%s,\"%s\",W"%(current_location.lat_deg,current_location.lon_deg,direction)
 
             # Save data to log file
             logfile = open("logs.csv","a")

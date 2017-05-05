@@ -127,7 +127,7 @@ try: # To stop gps thread from living if program throws an error
     print 'the arduino said: ',x
     ser.close()
     
-    # ask arduino to sleep so many times, if it doesnt after 5 or so, sleep pi anyway
+    # TODO ask arduino to sleep so many times, if it doesnt after 5 or so, sleep pi anyway
     print "\nKilling gps Thread..." # Should go at very end
     gpsp.running = False
     gpsp.join()
