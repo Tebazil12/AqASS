@@ -6,15 +6,15 @@ Multiple different behaviours can be written for this system but two are include
 here; navigating to a single point, and navigating to a series of points.
 
 This code is designed to be run on a motor-powered boat. The python code has been 
-developed for a pi3, and the arudino code has been developed for a moteino, 
-but this code will likely run on similar hardware.
+developed for a Raspberry Pi3, and the arudino code has been developed for a 
+moteino, but this code will run on similar hardware.
 
 ## How to use
 Before this program is run, all hardware must be connected (most importantly the 
 compass and GPS).
 
 Once all hardware is connected, start the Pi and load the Arduino code 
-(arduino-code/src/src/src.ino) onto the Arduino. If the compass libraries are
+(arduino-code/src/src.ino) onto the Arduino. If the compass libraries are
 not recognised you may need to tell the ArduinoIDE that they can be found in
 arduino-code/lib . In its default state the Arduino will not print anything 
 when the code is run; printing can be turned on to debug the code, but this
