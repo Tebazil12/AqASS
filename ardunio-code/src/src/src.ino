@@ -39,7 +39,6 @@ SOFTWARE.*/
 #define KI 0 //(1.2*KU/TU)  //Ziegler–Nichols method
 #define KD 0 //(3*KU*TU/40) //Ziegler–Nichols method
 
-//TODO move initialization of values to setup()
 int headDesired; /* in degrees, min 0, max 359 */
 int headCurrent; /* in degrees, min 0, max 359 */
 int prevHeadErr;
