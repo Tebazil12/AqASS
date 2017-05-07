@@ -88,9 +88,11 @@ class Line(Vector):
         """
         Return the point on the line which is closest to loc2. 
         
-        This was copied from assignment example solutions for Numerical Methods
-        (*** ) assignment finding the shortest distace to a line, and adapted 
+        This was copied from assignment example solutions for a Numerical 
+        Methods (https://www.aber.ac.uk/en/modules/deptcurrent/PH36010/) 
+        assignment finding the shortest distace to a line, and was adapted 
         for use here. 
+        Author Dr Tom Knight, Nov 2016.
         """
         u = np.array([self.location[1].lat_deg - self.location[0].lat_deg,\
             self.location[1].lon_deg - self.location[0].lon_deg])

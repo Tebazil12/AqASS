@@ -34,7 +34,8 @@ def location_at(location, dist, direction):
 def dist_between(loc1, loc2):
     """ 
     Return the direct distance between two Locations. Distance will 
-    be scalar (e.g. always positive). Use haversine formula.
+    be scalar (e.g. always positive). Use haversine formula from
+    https://rosettacode.org/wiki/Haversine_formula#Python .
     
     Keyword arguments:
     loc1 -- the first Location
