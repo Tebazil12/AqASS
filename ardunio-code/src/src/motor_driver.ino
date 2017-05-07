@@ -24,7 +24,7 @@
 #define DEGREE_MIN 0
 
 #define SPEED_MAX 4
-Servo esc;
+Servo esc; // Name copied from Aled Davies' code
 
 /** Convert from degrees to m/s */
 int degToMPS(int degree){

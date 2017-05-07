@@ -126,7 +126,9 @@ int headDiff(int head1, int head2){
  * This sends the following commands:
  *
  * e - signals the shutdown command was registered
- * x - the given command was not recognised
+ *
+ * This code was adapted from 
+ * https://github.com/abersailbot/dewi-arduino/blob/master/src/dewi.ino
  */
 void serialEvent(){
   
