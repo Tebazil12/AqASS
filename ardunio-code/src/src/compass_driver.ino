@@ -75,14 +75,16 @@ int getCompass(){
   // Convert radians to degrees for readability.
   float headingDegrees = heading * 180/M_PI;
 
-
+  /* Adjust heading to show give heading */
   if( headingDegrees >= (330)){
     headingDegrees = headingDegrees -360;
   }
 
-  headingDegrees = ((9.2583518*pow(10, -8)) * pow(headingDegrees, 4)) - (0.000064623 *pow(headingDegrees, 3)) + (0.0112157562*pow(headingDegrees, 2)) + (1.0274992414*headingDegrees) + 23.89831;
+  headingDegrees = ((9.2583518*pow(10, -8)) * pow(headingDegrees, 4)) 
+                    - (0.000064623 *pow(headingDegrees, 3)) 
+                    + (0.0112157562*pow(headingDegrees, 2)) 
+                    + (1.0274992414*headingDegrees) + 23.89831;
 
-  return int(headingDegrees); //this returns an int
-  // return 56;
+  return int(headingDegrees);
 }
 

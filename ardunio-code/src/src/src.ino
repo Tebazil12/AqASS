@@ -25,7 +25,8 @@ SOFTWARE.*/
 #include "Adafruit_Sensor.h"
 #include "Adafruit_HMC5883_U.h"
 
-//#define DEBUG_PRINT
+/* Uncomment this to enable print out - WILL DISRUPT COMMS WITH PI */
+//#define DEBUG_PRINT 
 
 #define MAX_SERIALIN 9  /* The max number of chars that can be read in from the pi*/
 
@@ -45,7 +46,6 @@ int prevHeadErr;
 int headInteg;
 int headBias;
 
-int speedCurrent; //in m/s - this will only be updated when the pi tells it new info
 int fullSpeed;
 int halfSpeed;
 float speedFrac = 1; /* Where 1 indicates max speed, 0 stationary */
@@ -55,15 +55,15 @@ float speedFrac = 1; /* Where 1 indicates max speed, 0 stationary */
  * is reading 0, the offset should be what bearing the boat is actually facing
  * along according to a calibrated compass.
  */
-int compassOffset = 0;//280+29+11+74;
+int compassOffset = 0;
 
 unsigned long timePrev;
 
 /* ***********************FUNCTIONS************************************** */
 
-/* Make sure angle is greater than or equal to 0 and less than 360 */
+/** Wrap angle to be between 0 and 359 */
 int wrapHeading(int angle){
-  while(angle < 0){ //this seems a little slow/ineligant?
+  while(angle < 0){
     angle += 360;
   }
   angle = angle % 360;
@@ -135,7 +135,7 @@ void serialEvent(){
   readSerialLine(nextLine, MAX_SERIALIN);
   int temp;
   
-  switch (nextLine[0]) {//TODO implement all cases
+  switch (nextLine[0]) {
   
   /* Send current heading */
   case 'c':
@@ -161,14 +161,14 @@ void serialEvent(){
     delay(100); // to allow time for serial to print
     cli();
     sleep_enable();
-    sleep_cpu(); //TODO check this does sleep and never wakes up
+    sleep_cpu();
     break;
 
   /* Set compass offset */
-  case 'o': //TODO investigate if this is needed from the pi, or if hardcoding this is ok
+  case 'o': 
     temp =  getNumber(nextLine);
     if(temp >= 360 || temp < 0){
-     // Serial.println("x");
+     // Serial.println("x");/* Send error message to Pi */
     }else{
     compassOffset = temp;
     }
@@ -182,7 +182,6 @@ void serialEvent(){
   
   #ifdef DEBUG_PRINT
   Serial.print("Current Command:"); Serial.println(nextLine);
-  //Serial.println("END_AGAIN");
   #endif
 }
 
@@ -198,7 +197,7 @@ void setup() {
   
   timePrev = millis();
   
-  headDesired = 90; //TODO set headingDesired to be initial heading when turned on (?)
+  headDesired = 90;
   prevHeadErr = 0;
   headInteg = 0;
   headBias = 0;
@@ -232,7 +231,7 @@ void loop(){
     headInteg = headInteg + (headError * (timePassed/1000.));
     headInteg = constrain(headInteg, -10, 10); //note, do not call functions in constrain, will break! (read docs)
     int headDeriv = (headError - prevHeadErr)/(timePassed/1000.);
-    int rudderAngle = KP*headError + KI*headInteg + KD*headDeriv ;//+ headBias;//bias could be used on the fly to correct for crabbing of boat?
+    int rudderAngle = KP*headError + KI*headInteg + KD*headDeriv ;
     int maxAng =getHardRight();
     int minAng =getHardLeft();
     rudderAngle = constrain(rudderAngle, minAng, maxAng);
@@ -247,8 +246,8 @@ void loop(){
     //motorSpeed = constrain(motorSpeed, getMinSpeed() , getMaxSpeed());
 
     /* Set speed and rudders */
-    setRudders(rudderAngle); //rename this to TUrn(angle) ? to make this based on angle of boat instead of rudders? (in this case those are ==)
-    setMotors(motorSpeed); //rename this to setSpeed(speed) ? so then the driver handles motor speeds
+    setRudders(rudderAngle); 
+    setMotors(motorSpeed);
    
    
     #ifdef DEBUG_PRINT
@@ -260,5 +259,5 @@ void loop(){
     prevHeadErr = headError;
   }
   timePrev = timeNow;
-  delay(100);// TODO obviously, reduce this //note, any delay inside this loop will delay reading of next values/
+  delay(100); //note, any delay inside this loop will delay reading of next values
 }

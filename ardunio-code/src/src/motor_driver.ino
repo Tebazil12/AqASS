@@ -18,10 +18,10 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.*/
 
-#define DEGREE_ARM 90
-#define DEGREE_MAX 180
-#define DEGREE_STOP 90
-#define DEGREE_MIN 0
+#define DEGREE_ARM 90   /* The raw value that arms the motors */
+#define DEGREE_MAX 180  /* The max raw value that can be sent to motors */
+#define DEGREE_STOP 90  /* The raw value that stops the motors */
+#define DEGREE_MIN 0    /* The min raw value that can be sent to motors */
 
 #define SPEED_MAX 4
 Servo esc; // Name copied from Aled Davies' code

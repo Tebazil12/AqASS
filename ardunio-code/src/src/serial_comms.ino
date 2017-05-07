@@ -18,9 +18,10 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.*/
 
+/** Return the number in the given char array as an int */
 int getNumber(char* nextLine){
   int number;
-  if(nextLine[3] == ')'){//TODO change this back to not using brackets?
+  if(nextLine[3] == ')'){
     /* If in the format h(5) */
     number = nextLine[2]-'0';
   }
@@ -34,8 +35,6 @@ int getNumber(char* nextLine){
   }
   return number;
 }
-
-
 
 /**
  * Read in next line of serial (up to a newline or carriage return) one
@@ -51,9 +50,7 @@ void readSerialLine(char* thisLine, int MAX_SERIAL_IN){//builds on functions in 
       break;
     }
     else{
-      //  Serial.println("in");
       char c = Serial.read();
-      //  Serial.print("c: "); Serial.println(c);
       if(c == '\n' || c == '\r'){
         thisLine[index] = '\0';
         break;
@@ -64,6 +61,4 @@ void readSerialLine(char* thisLine, int MAX_SERIAL_IN){//builds on functions in 
     }
   }
   thisLine[index] = '\0';
-  //  Serial.println("END");
 }
-
